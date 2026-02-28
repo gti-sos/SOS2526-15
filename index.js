@@ -9,7 +9,7 @@ app.use(express.json());
 // api rest YHX
 let stats = [];
 
-const API_URL = "/api/v1/population-stats";
+const API_URL = "/api/v1/population-densities";
 // ----------------------------------
 // api rest SMB
 const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
