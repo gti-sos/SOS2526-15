@@ -6,11 +6,16 @@ const port = process.env.PORT || 8080;
 app.use('/', express.static('public'));
 
 app.use(express.json());
-
+// api rest YHX
 let stats = [];
 
 const API_URL = "/api/v1/population-stats";
+// ----------------------------------
+// api rest SMB
+const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
 
+let minimumInterprofessionalWages = [];
+// ----------------------------------
 app.get('/cool', (req, res) => {
     res.send(cool());
 });
@@ -99,9 +104,24 @@ app.get(`${API_URL}/loadInitialData`, (req, res) => {
     }
 });
 
+app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
+
+    if (minimumInterprofessionalWages.length === 0) {
+        minimumInterprofessionalWages = [...datosNmw]; 
+        res.status(201).json(minimumInterprofessionalWages);
+    } else {
+        res.status(409).json({ message: "Los datos ya estaban cargados" });
+    }
+});
+
 // GET: Devuelve toda la lista
 app.get(API_URL, (req, res) => {
     res.status(200).json(stats); // 200: OK
 });
 
 //_____________________________________________________________Fin tareas YHX_________________________
+// GET: Devuelve toda la lista
+ app.get(API_URL_SMB, (req, res) => {
+    res.status(200).json(minimumInterprofessionalWages);
+});
+//_____________________________________________________________Fin tareas SMB_________________________
