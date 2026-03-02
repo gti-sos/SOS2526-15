@@ -244,6 +244,14 @@ app.get(API_URL, (req, res) => {
  app.get(API_URL_SMB, (req, res) => {
     res.status(200).json(minimumInterprofessionalWages);
 });
+//POST restriccion
+app.post("/:country", (req, res) => {
+    return sendJson(res, 405, {error: "POST not allowed on /:country"});
+});
+//PUT restriccion
+app.put("/", (req, res) => {
+    return sendJson(res, 405, {error: "PUT not allowed on /"});
+});
 //_____________________________________________________________Fin tareas SMB_________________________
 
 // GET JAM
