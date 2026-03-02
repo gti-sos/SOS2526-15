@@ -15,6 +15,18 @@ const API_URL = "/api/v1/population-densities";
 const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
 
 let minimumInterprofessionalWages = [];
+
+// Middleware simple de autenticación
+app.use(API_URL_SMB, (req, res, next) => {
+
+    const apiKey = req.headers["x-api-key"];
+
+    if (!apiKey || apiKey !== "SMB123") {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    next();
+});
 // ----------------------------------
 
 // api rest JAM
@@ -162,6 +174,21 @@ app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
     } else {
         res.status(409).json({ message: "Los datos ya estaban cargados" });
     }
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
 });
 //POST SMB
 app.post(API_URL_SMB, (req, res) => {
@@ -183,6 +210,21 @@ app.post(API_URL_SMB, (req, res) => {
 
     minimumInterprofessionalWages.push(newWage);
     res.status(201).json(newWage);
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
 });
 
 // PUT SMB dado country y date, salario minimo
@@ -204,6 +246,21 @@ app.put(`${API_URL_SMB}/:country/:date`, (req, res) => {
     minimumInterprofessionalWages[index] = req.body;
 
     res.status(200).json(req.body);
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
 });
 
 // DELETE SMB
@@ -221,9 +278,24 @@ app.delete(`${API_URL_SMB}/:country/:date`, (req, res) => {
         return res.status(404).json({ message: "Recurso no encontrado" });
     }
 
-    minimumInterprofessionalWages.splice(index, 1);
+    minimumInterprofessionalWages.splice(index, 1);ç
 
     res.status(204).send(); // 204: No Content
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
 });
 
 app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
@@ -241,8 +313,82 @@ app.get(API_URL, (req, res) => {
 
 //_____________________________________________________________Fin tareas YHX_________________________
 // GET: Devuelve toda la lista
- app.get(API_URL_SMB, (req, res) => {
-    res.status(200).json(minimumInterprofessionalWages);
+app.get(API_URL_SMB, (req, res) => {
+
+    let { country, date, from, to } = req.query;
+
+    let results = minimumInterprofessionalWages;
+
+    // Filtrar por country
+    if (country) {
+        results = results.filter(d => d.country === country);
+    }
+
+    // Filtrar por date exacta
+    if (date) {
+        results = results.filter(d => d.date === parseInt(date));
+    }
+
+    // Filtrar por rango
+    if (from) {
+        results = results.filter(d => d.date >= parseInt(from));
+    }
+
+    if (to) {
+        results = results.filter(d => d.date <= parseInt(to));
+    }
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+    // Si no hay resultados → devolver array vacío
+    return res.status(200).json(results);
+});
+
+// GET concreto
+
+app.get(`${API_URL_SMB}/:country/:date`, (req, res) => {
+
+    const country = req.params.country;
+    const date = parseInt(req.params.date);
+
+    const result = minimumInterprofessionalWages.find(d =>
+        d.country === country &&
+        d.date === date
+    );
+
+    if (!result) {
+        return res.status(404).json({});
+    }
+    // 405 para métodos no permitidos en colección
+app.all(API_URL_SMB, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "POST") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+// 405 para recurso individual
+app.all(`${API_URL_SMB}/:country/:date`, (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        return res.status(405).json({ message: "Method Not Allowed" });
+    }
+    next();
+});
+
+    return res.status(200).json(result);
 });
 //POST restriccion
 app.post("/:country", (req, res) => {
