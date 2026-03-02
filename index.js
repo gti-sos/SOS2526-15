@@ -16,18 +16,6 @@ const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
 
 let minimumInterprofessionalWages = [];
 
-// Middleware simple de autenticación
-app.use(API_URL_SMB, (req, res, next) => {
-
-    const apiKey = req.headers["x-api-key"];
-
-    if (!apiKey || apiKey !== "SMB123") {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    next();
-});
-// ----------------------------------
 
 // api rest JAM
 const API_URL_JAM = "/api/v1/happiness-indices";
