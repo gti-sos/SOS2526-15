@@ -16,6 +16,11 @@ const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
 
 let minimumInterprofessionalWages = [];
 // ----------------------------------
+
+// api rest JAM
+const API_URL_JAM = "/api/v1/happiness-indices";
+let happinessIndices = [];
+// -----------------------------------
 app.get('/cool', (req, res) => {
     res.send(cool());
 });
@@ -93,6 +98,51 @@ app.get('/samples/SMB', (req, res) => {
     res.send(`Media del salario mínimo en dólares en España: ${media.toLocaleString('es-ES')}`);
 });
 // -------------------------------------------------
+
+
+
+//--- Datos y algoritmo de JAM ---
+const datosHappiness = [
+    { country: "finland", year: 2023, happiness_score: 7.804, gdp_per_capita: 1.888, social_support: 1.585 },
+    { country: "denmark", year: 2023, happiness_score: 7.586, gdp_per_capita: 1.949, social_support: 1.548 },
+    { country: "iceland", year: 2023, happiness_score: 7.530, gdp_per_capita: 1.926, social_support: 1.620 },
+    { country: "israel", year: 2023, happiness_score: 7.473, gdp_per_capita: 1.833, social_support: 1.521 },
+    { country: "netherlands", year: 2023, happiness_score: 7.403, gdp_per_capita: 1.942, social_support: 1.488 },
+    { country: "sweden", year: 2023, happiness_score: 7.395, gdp_per_capita: 1.921, social_support: 1.510 },
+    { country: "norway", year: 2023, happiness_score: 7.315, gdp_per_capita: 1.994, social_support: 1.521 },
+    { country: "switzerland", year: 2023, happiness_score: 7.240, gdp_per_capita: 2.022, social_support: 1.463 },
+    { country: "luxembourg", year: 2023, happiness_score: 7.228, gdp_per_capita: 2.200, social_support: 1.357 },
+    { country: "new_zealand", year: 2023, happiness_score: 7.123, gdp_per_capita: 1.842, social_support: 1.544 },
+    { country: "austria", year: 2023, happiness_score: 7.097, gdp_per_capita: 1.927, social_support: 1.382 },
+    { country: "australia", year: 2023, happiness_score: 7.095, gdp_per_capita: 1.899, social_support: 1.497 },
+    { country: "germany", year: 2023, happiness_score: 6.892, gdp_per_capita: 1.919, social_support: 1.319 },
+    { country: "united_states", year: 2023, happiness_score: 6.894, gdp_per_capita: 1.980, social_support: 1.460 },
+    { country: "spain", year: 2023, happiness_score: 6.436, gdp_per_capita: 1.815, social_support: 1.432 },
+    { country: "mexico", year: 2023, happiness_score: 6.330, gdp_per_capita: 1.571, social_support: 1.258 },
+    { country: "brazil", year: 2023, happiness_score: 6.125, gdp_per_capita: 1.454, social_support: 1.284 },
+    { country: "argentina", year: 2023, happiness_score: 6.024, gdp_per_capita: 1.583, social_support: 1.332 },
+    { country: "japan", year: 2023, happiness_score: 6.129, gdp_per_capita: 1.838, social_support: 1.373 },
+    { country: "south_africa", year: 2023, happiness_score: 5.275, gdp_per_capita: 1.417, social_support: 1.221 },
+    { country: "finland", year: 2022, happiness_score: 7.803, gdp_per_capita: 1.887, social_support: 1.583 }
+];
+function mediaFelicidad(pais) {
+    let subconjunto = datosHappiness.filter(d => d.country === pais);
+    
+    if (subconjunto.length === 0) {
+        return 0;
+    }
+
+    let sumaFelicidad = subconjunto.reduce((acumulador, d) => acumulador + d.happiness_score, 0);
+    let media = sumaFelicidad / subconjunto.length;
+    
+    return media;
+}
+app.get('/samples/JAM', (req, res) => {
+    const media = mediaFelicidad("finland");
+    res.send(`Media de puntuación de felicidad en Finlandia: ${media.toLocaleString('es-ES')}`);
+});
+
+//  -------------------------------------------------
 
 app.get(`${API_URL}/loadInitialData`, (req, res) => {
     if (stats.length === 0) {
@@ -176,6 +226,14 @@ app.delete(`${API_URL_SMB}/:country/:date`, (req, res) => {
     res.status(204).send(); // 204: No Content
 });
 
+app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
+    if (happinessIndices.length === 0) {
+        happinessIndices = [...datosHappiness]; 
+        res.status(201).json(happinessIndices);
+    } else {
+        res.status(409).json({ message: "Los datos ya estaban cargados" });
+    }
+});
 // GET: Devuelve toda la lista
 app.get(API_URL, (req, res) => {
     res.status(200).json(stats); // 200: OK
@@ -187,3 +245,9 @@ app.get(API_URL, (req, res) => {
     res.status(200).json(minimumInterprofessionalWages);
 });
 //_____________________________________________________________Fin tareas SMB_________________________
+
+// GET JAM
+app.get(API_URL_JAM, (req, res) => {
+    res.status(200).json(happinessIndices);
+});
+//_____________________________________________________________Fin tareas JAM_________________________
