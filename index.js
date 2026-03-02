@@ -113,6 +113,68 @@ app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
         res.status(409).json({ message: "Los datos ya estaban cargados" });
     }
 });
+//POST SMB
+app.post(API_URL_SMB, (req, res) => {
+
+    const newWage = req.body;
+
+    if (!newWage.country || !newWage.date) {
+        return res.status(400).json({ message: "Faltan campos obligatorios (country, date)" });
+    }
+
+    const exists = minimumInterprofessionalWages.find(d =>
+        d.country === newWage.country &&
+        d.date === newWage.date
+    );
+
+    if (exists) {
+        return res.status(409).json({ message: "El recurso ya existe" });
+    }
+
+    minimumInterprofessionalWages.push(newWage);
+    res.status(201).json(newWage);
+});
+
+// PUT SMB dado country y date, salario minimo
+app.put(`${API_URL_SMB}/:country/:date`, (req, res) => {
+
+    const country = req.params.country;
+    const date = parseInt(req.params.date);
+
+    const index = minimumInterprofessionalWages.findIndex(d =>
+        d.country === country &&
+        d.date === date
+    );
+
+    if (index === -1) {
+        return res.status(404).json({ message: "Recurso no encontrado" });
+    }
+
+    // Actualizamos completamente el objeto
+    minimumInterprofessionalWages[index] = req.body;
+
+    res.status(200).json(req.body);
+});
+
+// DELETE SMB
+app.delete(`${API_URL_SMB}/:country/:date`, (req, res) => {
+
+    const country = req.params.country;
+    const date = parseInt(req.params.date);
+
+    const index = minimumInterprofessionalWages.findIndex(d =>
+        d.country === country &&
+        d.date === date
+    );
+
+    if (index === -1) {
+        return res.status(404).json({ message: "Recurso no encontrado" });
+    }
+
+    minimumInterprofessionalWages.splice(index, 1);
+
+    res.status(204).send(); // 204: No Content
+});
 
 // GET: Devuelve toda la lista
 app.get(API_URL, (req, res) => {
