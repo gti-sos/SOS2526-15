@@ -189,3 +189,71 @@ app.get(API_URL_JAM, (req, res) => {
     res.status(200).json(happinessIndices);
 });
 //_____________________________________________________________Fin tareas JAM_________________________
+
+// POST a la colección (Crear un nuevo dato)
+app.post(API_URL_JAM, (req, res) => {
+    const newData = req.body;
+    if (!newData || !newData.country || !newData.year) {
+        return res.status(400).json({ message: "Faltan campos obligatorios" });
+    }
+    const exists = happinessIndices.find(d => d.country === newData.country && d.year === newData.year);
+    if (exists) {
+        return res.status(409).json({ message: "El recurso ya existe" });
+    }
+    happinessIndices.push(newData);
+    res.status(201).json({ message: "Recurso creado" });
+});
+
+// GET a un recurso específico (por país)
+app.get(`${API_URL_JAM}/:country`, (req, res) => {
+    const country = req.params.country;
+    const resource = happinessIndices.filter(d => d.country === country);
+    if (resource.length > 0) {
+        res.status(200).json(resource);
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" });
+    }
+});
+
+// DELETE a un recurso específico (por país)
+app.delete(`${API_URL_JAM}/:country`, (req, res) => {
+    const country = req.params.country;
+    const initialLength = happinessIndices.length;
+    happinessIndices = happinessIndices.filter(d => d.country !== country);
+    if (happinessIndices.length < initialLength) {
+        res.status(200).json({ message: "Recurso eliminado" });
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" });
+    }
+});
+
+// PUT a un recurso específico (Actualizar)
+app.put(`${API_URL_JAM}/:country`, (req, res) => {
+    const country = req.params.country;
+    const body = req.body;
+    if (body.country !== country) {
+        return res.status(400).json({ message: "El país de la URL no coincide con el del cuerpo" });
+    }
+    let index = happinessIndices.findIndex(d => d.country === country);
+    if (index !== -1) {
+        // En una API real actualizaríamos solo el año correspondiente, aquí simplificamos al país
+        happinessIndices[index] = { ...happinessIndices[index], ...body };
+        res.status(200).json({ message: "Recurso actualizado" });
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" });
+    }
+});
+
+// DELETE a la colección completa
+app.delete(API_URL_JAM, (req, res) => {
+    happinessIndices = [];
+    res.status(200).json({ message: "Todos los recursos han sido eliminados" });
+});
+
+// Métodos NO permitidos (Para evitar que devuelva HTML)
+app.post(`${API_URL_JAM}/:country`, (req, res) => {
+    res.status(405).json({ message: "Método no permitido. No puedes hacer POST a un recurso específico." });
+});
+app.put(API_URL_JAM, (req, res) => {
+    res.status(405).json({ message: "Método no permitido. No puedes hacer PUT a la colección." });
+});
