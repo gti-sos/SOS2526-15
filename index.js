@@ -394,36 +394,100 @@ app.get(API_URL_JAM, (req, res) => {
 });
 //_____________________________________________________________Fin tareas JAM_________________________
 
-// POST a la colección (Crear un nuevo dato)
+// =========================================================================
+// ==================== INICIO API REST JAM ================================
+// =========================================================================
+
+// 1. GET a la colección (Devuelve todos)
+app.get(API_URL_JAM, (req, res) => {
+    res.status(200).json(happinessIndices);
+});
+
+// 2. POST a la colección (Crear un nuevo dato)
 app.post(API_URL_JAM, (req, res) => {
     const newData = req.body;
-    if (!newData || !newData.country || !newData.year) {
+
+    // Validación de campos esperados (Error 400)
+    if (!newData || !newData.country || !newData.year || !newData.happiness_score || !newData.gdp_per_capita || !newData.social_support) {
         return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
+
+    // Comprobar si ya existe (Error 409)
     const exists = happinessIndices.find(d => d.country === newData.country && d.year === newData.year);
     if (exists) {
         return res.status(409).json({ message: "El recurso ya existe" });
     }
+
     happinessIndices.push(newData);
-    res.status(201).json({ message: "Recurso creado" });
+    res.status(201).json(newData); // Se suele devolver el objeto creado
 });
 
-// GET a un recurso específico (por país)
-app.get(`${API_URL_JAM}/:country`, (req, res) => {
+// 3. PUT a la colección (NO PERMITIDO - Error 405)
+app.put(API_URL_JAM, (req, res) => {
+    res.status(405).json({ message: "Método PUT no permitido en la colección" });
+});
+
+// 4. DELETE a la colección (Borrar todos)
+app.delete(API_URL_JAM, (req, res) => {
+    happinessIndices = [];
+    res.status(200).json({ message: "Todos los recursos han sido eliminados" });
+});
+
+// -------------------------------------------------------------------------
+
+// 5. GET a un recurso específico (por país y año)
+app.get(`${API_URL_JAM}/:country/:year`, (req, res) => {
     const country = req.params.country;
-    const resource = happinessIndices.filter(d => d.country === country);
-    if (resource.length > 0) {
+    const year = parseInt(req.params.year); // ¡Cuidado con parsear el año a número!
+
+    const resource = happinessIndices.find(d => d.country === country && d.year === year);
+    
+    if (resource) {
         res.status(200).json(resource);
     } else {
         res.status(404).json({ message: "Recurso no encontrado" });
     }
 });
 
-// DELETE a un recurso específico (por país)
-app.delete(`${API_URL_JAM}/:country`, (req, res) => {
+// 6. POST a un recurso específico (NO PERMITIDO - Error 405)
+app.post(`${API_URL_JAM}/:country/:year`, (req, res) => {
+    res.status(405).json({ message: "Método POST no permitido en un recurso específico" });
+});
+
+// 7. PUT a un recurso específico (Actualizar)
+app.put(`${API_URL_JAM}/:country/:year`, (req, res) => {
     const country = req.params.country;
+    const year = parseInt(req.params.year);
+    const body = req.body;
+
+    // Validación: los datos de la URL deben coincidir con el body (Error 400)
+    if (body.country !== country || body.year !== year) {
+        return res.status(400).json({ message: "Los identificadores de la URL no coinciden con los del cuerpo (JSON)" });
+    }
+
+    // Validación de que lleguen todos los campos (opcional pero recomendado)
+    if (!body.happiness_score || !body.gdp_per_capita || !body.social_support) {
+        return res.status(400).json({ message: "Faltan campos obligatorios en el JSON" });
+    }
+
+    const index = happinessIndices.findIndex(d => d.country === country && d.year === year);
+    
+    if (index !== -1) {
+        happinessIndices[index] = body; // Reemplazamos el objeto
+        res.status(200).json(happinessIndices[index]);
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" });
+    }
+});
+
+// 8. DELETE a un recurso específico (por país y año)
+app.delete(`${API_URL_JAM}/:country/:year`, (req, res) => {
+    const country = req.params.country;
+    const year = parseInt(req.params.year);
+
     const initialLength = happinessIndices.length;
-    happinessIndices = happinessIndices.filter(d => d.country !== country);
+    happinessIndices = happinessIndices.filter(d => !(d.country === country && d.year === year));
+
     if (happinessIndices.length < initialLength) {
         res.status(200).json({ message: "Recurso eliminado" });
     } else {
@@ -431,33 +495,6 @@ app.delete(`${API_URL_JAM}/:country`, (req, res) => {
     }
 });
 
-// PUT a un recurso específico (Actualizar)
-app.put(`${API_URL_JAM}/:country`, (req, res) => {
-    const country = req.params.country;
-    const body = req.body;
-    if (body.country !== country) {
-        return res.status(400).json({ message: "El país de la URL no coincide con el del cuerpo" });
-    }
-    let index = happinessIndices.findIndex(d => d.country === country);
-    if (index !== -1) {
-        // En una API real actualizaríamos solo el año correspondiente, aquí simplificamos al país
-        happinessIndices[index] = { ...happinessIndices[index], ...body };
-        res.status(200).json({ message: "Recurso actualizado" });
-    } else {
-        res.status(404).json({ message: "Recurso no encontrado" });
-    }
-});
-
-// DELETE a la colección completa
-app.delete(API_URL_JAM, (req, res) => {
-    happinessIndices = [];
-    res.status(200).json({ message: "Todos los recursos han sido eliminados" });
-});
-
-// Métodos NO permitidos (Para evitar que devuelva HTML)
-app.post(`${API_URL_JAM}/:country`, (req, res) => {
-    res.status(405).json({ message: "Método no permitido. No puedes hacer POST a un recurso específico." });
-});
-app.put(API_URL_JAM, (req, res) => {
-    res.status(405).json({ message: "Método no permitido. No puedes hacer PUT a la colección." });
-});
+// =========================================================================
+// ==================== FIN API REST JAM ===================================
+// =========================================================================
