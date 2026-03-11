@@ -36,7 +36,7 @@ if (filteredData.length === 0) {
 }
 
 
-// Lo que he añadido en L06
+// Lo que he añadido en L06   Es el paso 2
 app.get('/api/v1/happiness-indices', (req, res) => {
     // 1. Preparar la paginación (si el usuario no manda limit/offset, por defecto es 0)
     const limit = req.query.limit ? parseInt(req.query.limit) : 0; 
@@ -62,6 +62,89 @@ app.get('/api/v1/happiness-indices', (req, res) => {
             
             // 5. Devolver siempre un Array en JSON con código 200 OK
             res.status(200).json(docs);
+        }
+    });
+});
+
+//L06 Es el paso 3
+app.get('/api/v1/happiness-indices', (req, res) => {
+    // 1. Capturamos todo lo que viene después del "?" en la URL.
+    // req.query es un objeto de Express que ya tiene estos parámetros.
+    // Hacemos una copia para no modificar el objeto original de Express.
+    let searchQuery = { ...req.query };
+
+    // 2. ¡CUIDADO AQUÍ! Si el usuario usa paginación (que la implementaremos luego), 
+    // esos parámetros también llegarán en req.query. 
+    // Debemos borrarlos de nuestra "searchQuery" para que NeDB no intente 
+    // buscar recursos que tengan un campo literalmente llamado "limit" u "offset".
+    delete searchQuery.limit;
+    delete searchQuery.offset;
+
+    // 3. Conversión de tipos (IMPORTANTE)
+    // Todo lo que llega por la URL es texto (String). 
+    // Si en tu base de datos guardas datos numéricos (como un año o estadísticas),
+    // tienes que convertirlos para que NeDB sepa encontrarlos.
+    // Adapta esto a los campos numéricos o booleanos que tenga TU recurso en concreto:
+    if (searchQuery.year) {
+        searchQuery.year = parseInt(searchQuery.year); 
+    }
+    // if (searchQuery.otraEstadisticaNumerica) {
+    //     searchQuery.otraEstadisticaNumerica = parseFloat(searchQuery.otraEstadisticaNumerica);
+    // }
+
+    // 4. Hacemos la búsqueda pasándole el objeto limpio
+    db.find(searchQuery, (err, docs) => {
+        if (err) {
+            console.error("Error en la búsqueda", err);
+            res.sendStatus(500);
+        } else {
+            // Recuerda: borramos el _id autogenerado por NeDB
+            docs.forEach(doc => {
+                delete doc._id;
+            });
+            // Devolvemos el array filtrado
+            res.status(200).json(docs); 
+        }
+    });
+});
+
+
+//L06 Es el paso 4
+app.get('/api/v1/happiness-indices', (req, res) => {
+    // 1. Capturamos los parámetros de búsqueda
+    let searchQuery = { ...req.query };
+
+    // 2. Extraemos el limit y el offset (y los convertimos a números enteros)
+    let limit = 0; // 0 en NeDB significa "sin límite"
+    let offset = 0;
+
+    if (req.query.limit) {
+        limit = parseInt(req.query.limit);
+        delete searchQuery.limit; // Lo borramos de la búsqueda para que no intente buscar un campo "limit"
+    }
+
+    if (req.query.offset) {
+        offset = parseInt(req.query.offset);
+        delete searchQuery.offset; // Lo borramos también
+    }
+
+    // 3. (Añade aquí la conversión de campos numéricos si la necesitas, como vimos antes)
+    // if (searchQuery.year) searchQuery.year = parseInt(searchQuery.year);
+
+    // 4. Ejecutamos la búsqueda encadenando skip y limit
+    // OJO: Al usar limit y skip, en NeDB hay que terminar con .exec()
+    db.find(searchQuery).skip(offset).limit(limit).exec((err, docs) => {
+        if (err) {
+            console.error("Error al buscar en la base de datos", err);
+            res.sendStatus(500);
+        } else {
+            // Limpiamos el _id como nos pide la rúbrica
+            docs.forEach(doc => {
+                delete doc._id;
+            });
+            
+            // Devolvemos el array JSON [cite: 81, 85, 86]
+            res.status(200).json(docs); 
         }
     });
 });
