@@ -7,3 +7,7 @@
 - **Project description**: "Our project analyzes the correlation between a country's happiness index and its population density and minimum wage. We study how wages and the possibility of encountering other people, which we measure using density, can affect a nation's happiness. The goal is to understand how happiness varies based on socioeconomic factors and, thanks to this data, nations can establish strategies to improve the happiness of their inhabitants."
 - **Repository**: [gti-sos/SOS2526-15](https://github.com/gti-sos/SOS2526-15)
 - **Live URL**: [SOS2526-15](https://sos2526-15.onrender.com)
+- **APIs:**:
+  - https://sos2526-15.onrender.com/api/v1/population-densities (developed by Adrián López Gamboa)
+  - https://sos2526-15.onrender.com/api/v1/minimum-interprofessional-wages (developed by Samanta Montoya Baena)
+  - https://sos2526-15.onrender.com/api/v1/happiness-indices (developed by Javier Arroyo)
