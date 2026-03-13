@@ -1,8 +1,8 @@
-const express = require('express');
-const cool = require('cool-ascii-faces');
+import express from 'express';
+import cool from 'cool-ascii-faces';
 const app = express();
 const port = process.env.PORT || 8080; 
-import SMB from './src/routes/SMB.js';
+import {loadBackendSMB} from './src/routes/SMB.js';
 
 app.use('/', express.static('public'));
 
@@ -20,6 +20,8 @@ let happinessIndices = [];
 app.get('/cool', (req, res) => {
     res.send(cool());
 });
+
+loadBackendSMB(app);
 
 app.listen(port, () => {
     console.log(`Server ready at port ${port}`);
