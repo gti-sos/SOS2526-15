@@ -62,8 +62,88 @@ app.get('/samples/YHX', (req, res) => {
     res.send(`Media de población en España: ${media.toLocaleString('es-ES')}`);
 });
 
-// -------------------------------------------------
 
+app.get(`${API_URL}/loadInitialData`, (req, res) => {
+    if (stats.length === 0) {
+        // Hacemos una copia de los datos originales
+        stats = [...datosDemograficos]; 
+        res.status(201).json(stats);
+    } else {
+        res.status(409).json({ message: "Los datos ya estaban cargados" });
+    }
+});
+
+// GET: Devuelve toda la lista
+app.get(API_URL, (req, res) => {
+    res.status(200).json(stats);
+});
+
+// POST: Crea un recurso nuevo
+app.post(API_URL, (req, res) => {
+    const newData = req.body;
+
+    // Requisito: Si falta algún campo -> 400
+    if (!newData.country || !newData.year || !newData.density || !newData.population || !newData.percentage_change) {
+        return res.status(400).json({ message: "Faltan campos obligatorios" });
+    }
+
+    // Requisito: Si ya existe -> 409
+    const exists = stats.find(s => s.country === newData.country && s.year === newData.year);
+    if (exists) {
+        return res.status(409).json({ message: "El recurso ya existe" });
+    }
+
+    stats.push(newData);
+    res.status(201).json({ message: "Recurso creado correctamente" });
+});
+
+// PUT: Método no permitido en la colección base -> 405
+app.put(API_URL, (req, res) => {
+    res.status(405).json({ message: "Método no permitido en la colección base" });
+});
+
+// DELETE: Borra toda la lista
+app.delete(API_URL, (req, res) => {
+    stats = [];
+    res.status(200).json({ message: "Todos los recursos borrados" });
+});
+
+app.post(`${API_URL}/:country/:year`, (req, res) => {
+    res.status(405).json({ message: "Método no permitido. Usa POST en la colección base." });
+});
+
+app.put(`${API_URL}/:country/:year`, (req, res) => {
+    const { country, year } = req.params;
+    const updateData = req.body;
+
+    // Validación: IDs coinciden (400)
+    if (updateData.country !== country || updateData.year !== parseInt(year)) {
+        return res.status(400).json({ message: "Los IDs de la URL y del body no coinciden" });
+    }
+
+    const index = stats.findIndex(s => s.country === country && s.year === parseInt(year));
+
+    if (index !== -1) {
+        stats[index] = updateData;
+        res.status(200).json({ message: "Recurso actualizado" }); // 200: OK
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" }); // 404: No encontrado
+    }
+});
+
+app.delete(`${API_URL}/:country/:year`, (req, res) => {
+    const { country, year } = req.params;
+    const initialLength = stats.length;
+    stats = stats.filter(s => !(s.country === country && s.year === parseInt(year)));
+
+    if (stats.length < initialLength) {
+        res.status(200).json({ message: "Recurso borrado" }); // 200: OK
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" }); // 404: No encontrado
+    }
+});
+
+//_____________________________________________________________Fin tareas YHX_________________________
 
 
 //--- Datos y algoritmo de JAM ---
@@ -109,18 +189,6 @@ app.get('/samples/JAM', (req, res) => {
 
 //  -------------------------------------------------
 
-app.get(`${API_URL}/loadInitialData`, (req, res) => {
-    if (stats.length === 0) {
-        // Hacemos una copia de los datos originales
-        stats = [datosDemograficos]; 
-        res.status(201).json(stats);
-    } else {
-        res.status(409).json({ message: "Los datos ya estaban cargados" });
-    }
-});
-
-
-
 app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
     if (happinessIndices.length === 0) {
         happinessIndices = [...datosHappiness]; 
@@ -134,7 +202,6 @@ app.get(API_URL, (req, res) => {
     res.status(200).json(stats); // 200: OK
 });
 
-//_____________________________________________________________Fin tareas YHX_________________________
 //POST restriccion
 app.post("/:country", (req, res) => {
     return sendJson(res, 405, {error: "POST not allowed on /:country"});
@@ -143,13 +210,15 @@ app.post("/:country", (req, res) => {
 app.put("/", (req, res) => {
     return sendJson(res, 405, {error: "PUT not allowed on /"});
 });
-//_____________________________________________________________Fin tareas SMB_________________________
+
 
 // GET JAM
 app.get(API_URL_JAM, (req, res) => {
     res.status(200).json(happinessIndices);
 });
 //_____________________________________________________________Fin tareas JAM_________________________
+
+//_____________________________________________________________Fin tareas SMB_________________________
 
 // =========================================================================
 // ==================== INICIO API REST JAM ================================
