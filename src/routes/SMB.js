@@ -1,8 +1,11 @@
 // api rest SMB
+import dataStore from 'nedb';
 const API_URL_SMB = "/api/v1/minimum-interprofessional-wages";
-export function loadBackendSMB(app){
-let minimumInterprofessionalWages = [];
+let db = new dataStore();
 
+export function loadBackendSMB(app){
+    let minimumInterprofessionalWages = [];
+    db.insert(minimumInterprofessionalWages)
     //--- Datos y algoritmo de SMB ---
     const datosNmw = [
         { country: "iran", date: 2024, national_currency_minimum_wage: 53073300.00, nmw_on_dollar: 1263.70, percentage_change: -6.04 },
@@ -35,14 +38,27 @@ let minimumInterprofessionalWages = [];
         res.send(`Media del salario mínimo en dólares en España: ${media.toLocaleString('es-ES')}`);
     });
     // -------------------------------------------------
-    app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
+  app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
 
-        if (minimumInterprofessionalWages.length === 0) {
-            minimumInterprofessionalWages = [...datosNmw]; 
-            res.status(201).json(minimumInterprofessionalWages);
+    db.find({}, (err, docs) => {
+
+        if (docs.length === 0) {
+
+            db.insert(datosNmw, (err, newDocs) => {
+                if (err) {
+                    return res.sendStatus(500);
+                }
+
+                newDocs.forEach(d => delete d._id);
+                res.status(201).json(newDocs);
+    });
+
         } else {
             res.status(409).json({ message: "Los datos ya estaban cargados" });
         }
+    });
+
+    });
         // 405 para SMB
     app.all(API_URL_SMB, (req, res, next) => {
         if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
@@ -65,27 +81,32 @@ let minimumInterprofessionalWages = [];
         }
         next();
     });
-    });
+
     //POST SMB
     app.post(API_URL_SMB, (req, res) => {
 
-        const newWage = req.body;
+    let newWage = req.body;
 
-        if (!newWage.country || !newWage.date) {
-            return res.status(400).json({ message: "Faltan campos obligatorios (country, date)" });
+    if (!newWage.country || !newWage.date) {
+        return res.status(400).json({ message: "Missing fields" });
+    }
+
+    db.find({ country: newWage.country, date: newWage.date }, (err, docs) => {
+
+        if (docs.length > 0) {
+            return res.status(409).json({ message: "Resource already exists" });
         }
 
-        const exists = minimumInterprofessionalWages.find(d =>
-            d.country === newWage.country &&
-            d.date === newWage.date
-        );
+        db.insert(newWage, (err, newDoc) => {
 
-        if (exists) {
-            return res.status(409).json({ message: "El recurso ya existe" });
-        }
+            delete newDoc._id;
 
-        minimumInterprofessionalWages.push(newWage);
-        res.status(201).json(newWage);
+            res.status(201).json(newDoc);
+
+         });
+
+         });
+
     });
 
     // PUT SMB
@@ -120,36 +141,42 @@ let minimumInterprofessionalWages = [];
 
     app.put(`${API_URL_SMB}/:country/:date`, (req, res) => {
 
-        const country = req.params.country;
-        const date = parseInt(req.params.date);
-        const body = req.body;
-        
+        let country = req.params.country;
+        let date = parseInt(req.params.date);
+        let body = req.body;
+
         if (body.country !== country || body.date !== date) {
             return res.status(400).json({
                 message: "El recurso del body debe coincidir con el de la URL"
             });
         }
-        const index = minimumInterprofessionalWages.findIndex(d =>
-            d.country === country &&
-            d.date === date
+
+        db.update(
+            { country: country, date: date },
+            body,
+            {},
+            (err, numUpdated) => {
+
+                if (numUpdated === 0) {
+                    return res.status(404).json({});
+                }
+
+                res.status(200).json(body);
+
+            }
         );
 
-        if (index === -1) {
-            return res.status(404).json({ message: "Recurso no encontrado" });
-        }
-
-        minimumInterprofessionalWages[index] = req.body;
-
-        res.status(200).json(req.body);
     });
-
     // DELETE SMB
 
     app.delete(API_URL_SMB, (req, res) => {
 
-        minimumInterprofessionalWages = [];
+        db.remove({}, { multi: true }, (err, numRemoved) => {
 
-        res.status(204).send();
+            res.sendStatus(204);
+
+        });
+
     });
 
     app.delete(`${API_URL_SMB}/:country`, (req, res) => {
@@ -171,52 +198,48 @@ let minimumInterprofessionalWages = [];
 
     app.delete(`${API_URL_SMB}/:country/:date`, (req, res) => {
 
-        const country = req.params.country;
-        const date = parseInt(req.params.date);
+        let country = req.params.country;
+        let date = parseInt(req.params.date);
 
-        const index = minimumInterprofessionalWages.findIndex(d =>
-            d.country === country &&
-            d.date === date
+        db.remove(
+            { country: country, date: date },
+            {},
+            (err, numRemoved) => {
+
+                if (numRemoved === 0) {
+                    return res.status(404).json({});
+                }
+
+                res.sendStatus(204);
+
+            }
         );
 
-        if (index === -1) {
-            return res.status(404).json({ message: "Recurso no encontrado" });
-        }
-
-        minimumInterprofessionalWages.splice(index, 1);
-
-        res.status(204).send(); // 204: No Content
     });
 
     // GET SMB
     app.get(API_URL_SMB, (req, res) => {
 
-        let { country, date, from, to } = req.query;
+    let { country, date, from, to } = req.query;
 
-        let results = minimumInterprofessionalWages;
+    let query = {};
 
-        // Filtrar por country
-        if (country) {
-            results = results.filter(d => d.country === country);
-        }
+    if (country) query.country = country;
+    if (date) query.date = parseInt(date);
 
-        // Filtrar por date exacta
-        if (date) {
-            results = results.filter(d => d.date === parseInt(date));
-        }
+    db.find(query, (err, docs) => {
 
-        // Filtrar por rango
-        if (from) {
-            results = results.filter(d => d.date >= parseInt(from));
-        }
+        if (err) return res.sendStatus(500);
 
-        if (to) {
-            results = results.filter(d => d.date <= parseInt(to));
-        }
+        if (from) docs = docs.filter(d => d.date >= parseInt(from));
+        if (to) docs = docs.filter(d => d.date <= parseInt(to));
 
-        // Si no hay resultados → devolver array vacío
-        return res.status(200).json(results);
+        docs.forEach(d => delete d._id);
+
+        res.status(200).json(docs);
     });
+
+});
 
     app.get(`${API_URL_SMB}/:country`, (req, res) => {
 
@@ -235,19 +258,21 @@ let minimumInterprofessionalWages = [];
 
     app.get(`${API_URL_SMB}/:country/:date`, (req, res) => {
 
-        const country = req.params.country;
-        const date = parseInt(req.params.date);
+    let country = req.params.country;
+    let date = parseInt(req.params.date);
 
-        const result = minimumInterprofessionalWages.find(d =>
-            d.country === country &&
-            d.date === date
-        );
+    db.findOne({ country: country, date: date }, (err, doc) => {
 
-        if (!result) {
+        if (!doc) {
             return res.status(404).json({});
         }
 
-        return res.status(200).json(result);
+        delete doc._id;
+
+        res.status(200).json(doc);
+
+    });
+
     });
     //POST restriccion
     app.post("/:country", (req, res) => {
