@@ -21,7 +21,7 @@ export function loadBackendSMB(app){
     ];
     const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
 
-    router.get(`${API_URL_SMB}/docs`, (req, res) => {
+    app.get(`${API_URL_SMB}/docs`, (req, res) => {
     res.redirect(DOCUMENTATION);
     });
     function mediaSalario(pais){
