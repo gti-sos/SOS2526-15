@@ -1,5 +1,4 @@
 import express from 'express';
-import cool from 'cool-ascii-faces';
 const app = express();
 const port = process.env.PORT || 8080; 
 import {loadBackendSMB} from './src/routes/SMB.js';
@@ -17,9 +16,7 @@ const API_URL = "/api/v1/population-densities";
 const API_URL_JAM = "/api/v1/happiness-indices";
 let happinessIndices = [];
 // -----------------------------------
-app.get('/cool', (req, res) => {
-    res.send(cool());
-});
+
 
 loadBackendSMB(app);
 

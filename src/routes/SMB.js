@@ -24,23 +24,7 @@ export function loadBackendSMB(app){
     app.get(`${API_URL_SMB}/docs`, (req, res) => {
     res.redirect(DOCUMENTATION);
     });
-    function mediaSalario(pais){
-        let subconjunto = datosNmw.filter(d => d.country === pais);
-        let valores = subconjunto.map(d => d.nmw_on_dollar);
-        let suma = 0;
-        valores.forEach(valor => {
-            suma += valor;
-        });
-        let media = valores.length > 0 ? suma / valores.length : 0;
-        return media;
-    }
-
-    app.get('/samples/SMB', (req, res) => {
-
-        const media = mediaSalario("spain");
-
-        res.send(`Media del salario mínimo en dólares en España: ${media.toLocaleString('es-ES')}`);
-    });
+    
     // -------------------------------------------------
   app.get(`${API_URL_SMB}/loadInitialData`, (req, res) => {
 
