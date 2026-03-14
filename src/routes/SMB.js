@@ -112,31 +112,29 @@ export function loadBackendSMB(app){
     // PUT SMB
     app.put(`${API_URL_SMB}/:country`, (req, res) => {
 
-        const country = req.params.country;
-        const body = req.body;
-        
+        let country = req.params.country;
+        let body = req.body;
+
         if (body.country !== country) {
             return res.status(400).json({
                 message: "El recurso del body debe coincidir con el de la URL"
             });
         }
-        let updated = false;
 
-        minimumInterprofessionalWages = minimumInterprofessionalWages.map(d => {
+        db.update(
+            { country: country},
+            body,
+            {},
+            (err, numUpdated) => {
 
-            if (d.country === country) {
-                updated = true;
-                return { ...d, ...req.body };
+                if (numUpdated === 0) {
+                    return res.status(404).json({});
+                }
+
+                res.status(200).json(body);
+
             }
-
-            return d;
-        });
-
-        if (!updated) {
-            return res.status(404).json({ message: "Country not found" });
-        }
-
-        res.status(200).json({ message: "Updated" });
+        );
     });
 
     app.put(`${API_URL_SMB}/:country/:date`, (req, res) => {
@@ -181,19 +179,21 @@ export function loadBackendSMB(app){
 
     app.delete(`${API_URL_SMB}/:country`, (req, res) => {
 
-        const country = req.params.country;
+        let country = req.params.country;
 
-        const filtered = minimumInterprofessionalWages.filter(d =>
-            d.country !== country
+        db.remove(
+            { country: country},
+            {},
+            (err, numRemoved) => {
+
+                if (numRemoved === 0) {
+                    return res.status(404).json({});
+                }
+
+                res.sendStatus(204);
+
+            }
         );
-
-        if (filtered.length === minimumInterprofessionalWages.length) {
-            return res.status(404).json({ message: "Country not found" });
-        }
-
-        minimumInterprofessionalWages = filtered;
-
-        res.status(204).send();
     });
 
     app.delete(`${API_URL_SMB}/:country/:date`, (req, res) => {
@@ -218,42 +218,59 @@ export function loadBackendSMB(app){
     });
 
     // GET SMB
-    app.get(API_URL_SMB, (req, res) => {
+   app.get(API_URL_SMB, (req, res) => {
 
-    let { country, date, from, to } = req.query;
+        let query = {};
 
-    let query = {};
+        if (req.query.country) {
+            query.country = req.query.country;
+        }
 
-    if (country) query.country = country;
-    if (date) query.date = parseInt(date);
+        if (req.query.date) {
+            query.date = parseInt(req.query.date);
+        }
 
-    db.find(query, (err, docs) => {
+        if (req.query.national_currency_minimum_wage) {
+            query.national_currency_minimum_wage = parseFloat(req.query.national_currency_minimum_wage);
+        }
 
-        if (err) return res.sendStatus(500);
+        if (req.query.nmw_on_dollar) {
+            query.nmw_on_dollar = parseFloat(req.query.nmw_on_dollar);
+        }
 
-        if (from) docs = docs.filter(d => d.date >= parseInt(from));
-        if (to) docs = docs.filter(d => d.date <= parseInt(to));
+        if (req.query.percentage_change) {
+            query.percentage_change = parseFloat(req.query.percentage_change);
+        }
 
-        docs.forEach(d => delete d._id);
+        db.find(query, (err, docs) => {
 
-        res.status(200).json(docs);
+            if (err) {
+                return res.sendStatus(500);
+            }
+
+            docs.forEach(d => delete d._id);
+
+            res.status(200).json(docs);
+
+        });
+
     });
-
-});
 
     app.get(`${API_URL_SMB}/:country`, (req, res) => {
 
-        const country = req.params.country;
+    let country = req.params.country;
 
-        const results = minimumInterprofessionalWages.filter(d =>
-            d.country === country
-        );
+    db.findOne({ country: country}, (err, doc) => {
 
-        if (results.length === 0) {
-            return res.status(404).json([]);
+        if (!doc) {
+            return res.status(404).json({});
         }
 
-        res.status(200).json(results);
+        delete doc._id;
+
+        res.status(200).json(doc);
+
+    });
     });
 
     app.get(`${API_URL_SMB}/:country/:date`, (req, res) => {
