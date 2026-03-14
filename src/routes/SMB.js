@@ -19,7 +19,11 @@ export function loadBackendSMB(app){
         { country: "canada", date: 2025, national_currency_minimum_wage: 2872.10, nmw_on_dollar: 1994.50, percentage_change: 0.81 },
         { country: "portugal", date: 2026, national_currency_minimum_wage: 1073.00, nmw_on_dollar: 1260.80, percentage_change: 5.71 }
     ];
+    const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
 
+    router.get(`${API_URL_SMB}/docs`, (req, res) => {
+    res.redirect(DOCUMENTATION);
+    });
     function mediaSalario(pais){
         let subconjunto = datosNmw.filter(d => d.country === pais);
         let valores = subconjunto.map(d => d.nmw_on_dollar);
