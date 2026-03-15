@@ -1,7 +1,6 @@
 import Datastore from 'nedb';
 const API_URL_JAM = "/api/v1/happiness-indices";
-// 🔴 IMPORTANTE: ¡Cambia esto por tu enlace REAL de Postman!
-const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/PON_AQUI_TU_ENLACE"; 
+const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/52395798/2sBXigMtLE"; 
 
 export function loadBackendJAM(app) {
     // Inicializamos NeDB (en memoria para que los tests sean idempotentes y limpios)
