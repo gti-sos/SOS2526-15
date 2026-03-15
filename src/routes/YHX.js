@@ -98,7 +98,7 @@ export function loadBackendYHX(app){
         }
 
         db.update(
-            { country: country, year: year },
+            { country: country},
             body,
             {},
             (err, numUpdated) => {
@@ -234,14 +234,14 @@ export function loadBackendYHX(app){
 
     //POST restriccion
     app.post("/:country", (req, res) => {
-        return sendJson(res, 405, {error: "POST not allowed on /:country"});
+        return res.status(405).json({error: "POST not allowed on /:country"});
+
     });
 
     //PUT restriccion
     app.put("/", (req, res) => {
-        return sendJson(res, 405, {error: "PUT not allowed on /"});
+        return res.status(405).json({error: "PUT not allowed on /"});
     });
-
     //_____________________________________________________________Fin tareas YHX_________________________
 }
 
