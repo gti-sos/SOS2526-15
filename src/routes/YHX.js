@@ -19,7 +19,7 @@ export function loadBackendYHX(app){
         { country: "ucrania", year: 2023, density: 63, population: 37732836, percentage_change: -8.08 },
         { country: "ucrania", year: 2022, density: 68, population: 41048766, percentage_change: 0.12 }
     ];
-    const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
+    const DOCUMENTATION = "https://documenter.getpostman.com/view/52392777/2sBXigMtFk";
 
     app.get(`${API_URL}/docs`, (req, res) => {
     res.redirect(DOCUMENTATION);
