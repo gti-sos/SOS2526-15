@@ -62,7 +62,6 @@ app.get('/samples/YHX', (req, res) => {
 
 app.get(`${API_URL}/loadInitialData`, (req, res) => {
     if (stats.length === 0) {
-        // Hacemos una copia de los datos originales
         stats = [...datosDemograficos]; 
         res.status(201).json(stats);
     } else {
@@ -70,39 +69,42 @@ app.get(`${API_URL}/loadInitialData`, (req, res) => {
     }
 });
 
-// GET: Devuelve toda la lista
+// 2. Colección Base: /api/v1/population-densities
 app.get(API_URL, (req, res) => {
     res.status(200).json(stats);
 });
 
-// POST: Crea un recurso nuevo
 app.post(API_URL, (req, res) => {
     const newData = req.body;
-
-    // Requisito: Si falta algún campo -> 400
     if (!newData.country || !newData.year || !newData.density || !newData.population || !newData.percentage_change) {
         return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
-
-    // Requisito: Si ya existe -> 409
     const exists = stats.find(s => s.country === newData.country && s.year === newData.year);
     if (exists) {
         return res.status(409).json({ message: "El recurso ya existe" });
     }
-
     stats.push(newData);
     res.status(201).json({ message: "Recurso creado correctamente" });
 });
 
-// PUT: Método no permitido en la colección base -> 405
 app.put(API_URL, (req, res) => {
     res.status(405).json({ message: "Método no permitido en la colección base" });
 });
 
-// DELETE: Borra toda la lista
 app.delete(API_URL, (req, res) => {
     stats = [];
     res.status(200).json({ message: "Todos los recursos borrados" });
+});
+
+// 3. Recurso Específico: /api/v1/population-densities/:country/:year
+app.get(`${API_URL}/:country/:year`, (req, res) => {
+    const { country, year } = req.params;
+    const stat = stats.find(s => s.country === country && s.year === parseInt(year));
+    if (stat) {
+        res.status(200).json(stat);
+    } else {
+        res.status(404).json({ message: "Recurso no encontrado" });
+    }
 });
 
 app.post(`${API_URL}/:country/:year`, (req, res) => {
@@ -113,18 +115,19 @@ app.put(`${API_URL}/:country/:year`, (req, res) => {
     const { country, year } = req.params;
     const updateData = req.body;
 
-    // Validación: IDs coinciden (400)
+    if (!updateData.country || !updateData.year || !updateData.density || !updateData.population || !updateData.percentage_change) {
+        return res.status(400).json({ message: "Faltan campos en el cuerpo de la petición" });
+    }
     if (updateData.country !== country || updateData.year !== parseInt(year)) {
         return res.status(400).json({ message: "Los IDs de la URL y del body no coinciden" });
     }
 
     const index = stats.findIndex(s => s.country === country && s.year === parseInt(year));
-
     if (index !== -1) {
         stats[index] = updateData;
-        res.status(200).json({ message: "Recurso actualizado" }); // 200: OK
+        res.status(200).json({ message: "Recurso actualizado" });
     } else {
-        res.status(404).json({ message: "Recurso no encontrado" }); // 404: No encontrado
+        res.status(404).json({ message: "Recurso no encontrado" });
     }
 });
 
@@ -134,9 +137,9 @@ app.delete(`${API_URL}/:country/:year`, (req, res) => {
     stats = stats.filter(s => !(s.country === country && s.year === parseInt(year)));
 
     if (stats.length < initialLength) {
-        res.status(200).json({ message: "Recurso borrado" }); // 200: OK
+        res.status(200).json({ message: "Recurso borrado" });
     } else {
-        res.status(404).json({ message: "Recurso no encontrado" }); // 404: No encontrado
+        res.status(404).json({ message: "Recurso no encontrado" });
     }
 });
 
@@ -321,3 +324,7 @@ app.delete(`${API_URL_JAM}/:country/:year`, (req, res) => {
 // =========================================================================
 // ==================== FIN API REST JAM ===================================
 // =========================================================================
+
+app.get('/cool', (req, res) => {
+    res.send(cool());
+});
