@@ -1,10 +1,11 @@
+import Datastore from 'nedb';
 const API_URL_JAM = "/api/v1/happiness-indices";
-// IMPORTANTE: Pon aquí tu enlace de documentación real si lo tienes
-const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/TU_ENLACE_AQUI"; 
+// 🔴 IMPORTANTE: ¡Cambia esto por tu enlace REAL de Postman!
+const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/PON_AQUI_TU_ENLACE"; 
 
 export function loadBackendJAM(app) {
-    // Array que hará de base de datos
-    let db = []; 
+    // Inicializamos NeDB (en memoria para que los tests sean idempotentes y limpios)
+    const db = new Datastore(); 
 
     const datosHappiness = [
         { country: "finland", year: 2023, happiness_score: 7.804, gdp_per_capita: 1.888, social_support: 1.585 },
@@ -29,7 +30,7 @@ export function loadBackendJAM(app) {
         { country: "south_africa", year: 2023, happiness_score: 5.275, gdp_per_capita: 1.417, social_support: 1.221 },
         { country: "finland", year: 2022, happiness_score: 7.803, gdp_per_capita: 1.887, social_support: 1.583 }
     ];
-    
+
     // ================== RUTAS ESPECIALES ==================
 
     app.get(`${API_URL_JAM}/docs`, (req, res) => {
@@ -37,12 +38,15 @@ export function loadBackendJAM(app) {
     });
 
     app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
-        if (db.length === 0) {
-            db = JSON.parse(JSON.stringify(datosHappiness)); // Copia profunda
-            res.status(201).json(db);
-        } else {
-            res.status(409).json({ message: "Los datos ya estaban cargados" });
-        }
+        db.count({}, (err, count) => {
+            if (count > 0) {
+                return res.status(409).json({ message: "Los datos ya estaban cargados" });
+            }
+            db.insert(datosHappiness, (err, newDocs) => {
+                newDocs.forEach(d => delete d._id); // Eliminamos el _id de nedb antes de enviar
+                res.status(201).json(newDocs);
+            });
+        });
     });
 
     // ================== CONTROL DE ERRORES 405 ==================
@@ -65,52 +69,76 @@ export function loadBackendJAM(app) {
         next();
     });
 
-    // ================== API REST ==================
+    // ================== API REST CON NEDB ==================
 
-    // GET Colección
+    // 1. GET Colección (Con Paginación y Búsqueda por campos)
     app.get(API_URL_JAM, (req, res) => {
-        res.status(200).json(db);
+        let query = {};
+        
+        // Búsquedas (si vienen en la URL, las añadimos a la query de NeDB)
+        if (req.query.country) query.country = req.query.country;
+        if (req.query.year) query.year = parseInt(req.query.year);
+        if (req.query.happiness_score) query.happiness_score = parseFloat(req.query.happiness_score);
+        if (req.query.gdp_per_capita) query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
+        if (req.query.social_support) query.social_support = parseFloat(req.query.social_support);
+
+        // Paginación
+        let limit = parseInt(req.query.limit) || 0; // 0 significa sin límite
+        let offset = parseInt(req.query.offset) || 0;
+
+        db.find(query).skip(offset).limit(limit).exec((err, data) => {
+            if (err) return res.status(500).send("Error interno de la BD");
+            data.forEach(d => delete d._id); // Borramos el _id de todos los resultados
+            res.status(200).json(data);
+        });
     });
 
-    // POST Colección
+    // 2. POST Colección
     app.post(API_URL_JAM, (req, res) => {
         let newData = req.body;
 
+        // Comprobamos estructura exacta (tienen que estar todos los campos)
         if (!newData || !newData.country || !newData.year || !newData.happiness_score || !newData.gdp_per_capita || !newData.social_support) {
-            return res.status(400).json({ message: "Faltan campos obligatorios" });
+            return res.status(400).json({ message: "Faltan campos obligatorios o la estructura es incorrecta" });
         }
 
         newData.year = parseInt(newData.year);
+        delete newData._id; // Nos aseguramos de que no metan un _id a mano
 
-        const exists = db.find(d => d.country === newData.country && d.year === newData.year);
-        if (exists) {
-            return res.status(409).json({ message: "El recurso ya existe" });
-        }
-
-        db.push(newData);
-        res.status(201).json(newData);
+        db.findOne({ country: newData.country, year: newData.year }, (err, exists) => {
+            if (exists) {
+                return res.status(409).json({ message: "El recurso ya existe" });
+            }
+            db.insert(newData, (err, savedData) => {
+                delete savedData._id; // No enviamos el _id de vuelta
+                res.status(201).json(savedData);
+            });
+        });
     });
 
-    // DELETE Colección
+    // 3. DELETE Colección
     app.delete(API_URL_JAM, (req, res) => {
-        db = [];
-        res.status(204).send();
+        db.remove({}, { multi: true }, (err, numRemoved) => {
+            res.status(204).send();
+        });
     });
 
-    // GET Recurso Específico
+    // 4. GET Recurso Específico
     app.get(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
 
-        const resource = db.find(d => d.country === country && d.year === year);
-        if (resource) {
-            res.status(200).json(resource);
-        } else {
-            res.status(404).json({ message: "Recurso no encontrado" });
-        }
+        db.findOne({ country: country, year: year }, (err, resource) => {
+            if (resource) {
+                delete resource._id; // Ocultamos el _id
+                res.status(200).json(resource);
+            } else {
+                res.status(404).json({ message: "Recurso no encontrado" });
+            }
+        });
     });
 
-    // PUT Recurso Específico
+    // 5. PUT Recurso Específico
     app.put(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
@@ -124,29 +152,29 @@ export function loadBackendJAM(app) {
             return res.status(400).json({ message: "Faltan campos obligatorios" });
         }
 
-        const index = db.findIndex(d => d.country === country && d.year === year);
-        
-        if (index !== -1) {
-            body.year = parseInt(body.year);
-            db[index] = body;
-            res.status(200).json(db[index]);
-        } else {
-            res.status(404).json({ message: "Recurso no encontrado" });
-        }
+        body.year = parseInt(body.year);
+        delete body._id; // Evitamos inyectar el _id modificado
+
+        db.update({ country: country, year: year }, body, {}, (err, numReplaced) => {
+            if (numReplaced === 1) {
+                res.status(200).json(body);
+            } else {
+                res.status(404).json({ message: "Recurso no encontrado" });
+            }
+        });
     });
 
-    // DELETE Recurso Específico
+    // 6. DELETE Recurso Específico
     app.delete(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
 
-        const initialLength = db.length;
-        db = db.filter(d => !(d.country === country && d.year === year));
-
-        if (db.length < initialLength) {
-            res.status(204).send();
-        } else {
-            res.status(404).json({ message: "Recurso no encontrado" });
-        }
+        db.remove({ country: country, year: year }, {}, (err, numRemoved) => {
+            if (numRemoved === 1) {
+                res.status(204).send();
+            } else {
+                res.status(404).json({ message: "Recurso no encontrado" });
+            }
+        });
     });
 }
