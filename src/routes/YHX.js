@@ -19,7 +19,7 @@ export function loadBackendYHX(app){
         { country: "ucrania", year: 2023, density: 63, population: 37732836, percentage_change: -8.08 },
         { country: "ucrania", year: 2022, density: 68, population: 41048766, percentage_change: 0.12 }
     ];
-    const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
+    const DOCUMENTATION = "https://documenter.getpostman.com/view/52392777/2sBXigMtFk";
 
     app.get(`${API_URL}/docs`, (req, res) => {
     res.redirect(DOCUMENTATION);
@@ -98,7 +98,7 @@ export function loadBackendYHX(app){
         }
 
         db.update(
-            { country: country, year: year },
+            { country: country},
             body,
             {},
             (err, numUpdated) => {
@@ -233,15 +233,15 @@ export function loadBackendYHX(app){
     });
 
     //POST restriccion
-    app.post("/:country", (req, res) => {
-        return sendJson(res, 405, {error: "POST not allowed on /:country"});
+    app.post(`${API_URL}/:country`, (req, res) => {
+        return res.status(405).json({error: "POST not allowed on /:country"});
+
     });
 
     //PUT restriccion
-    app.put("/", (req, res) => {
-        return sendJson(res, 405, {error: "PUT not allowed on /"});
+    app.put(`${API_URL}/`, (req, res) => {
+        return res.status(405).json({error: "PUT not allowed on /"});
     });
-
     //_____________________________________________________________Fin tareas YHX_________________________
 }
 
