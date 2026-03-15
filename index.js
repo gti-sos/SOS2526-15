@@ -73,10 +73,6 @@ app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
         res.status(409).json({ message: "Los datos ya estaban cargados" });
     }
 });
-// GET: Devuelve toda la lista
-app.get(API_URL, (req, res) => {
-    res.status(200).json(stats); // 200: OK
-});
 
 //POST restriccion
 app.post("/:country", (req, res) => {
