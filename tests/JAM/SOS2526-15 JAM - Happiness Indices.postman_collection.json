@@ -3,8 +3,7 @@
     "_postman_id": "ff73d126-f1eb-401e-82b4-401c5eb404d1",
     "name": "SOS2526-15 JAM - Happiness Indices",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "52395798",
-    "_collection_link": "https://go.postman.co/collection/52395798-ff73d126-f1eb-401e-82b4-401c5eb404d1?source=collection_link"
+    "_exporter_id": "52395798"
   },
   "item": [
     {
@@ -24,15 +23,12 @@
               "    pm.expect(jsonData.length).to.be.above(0);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "GET",
-        "header": [],
         "url": {
           "raw": "{{url_base}}/loadInitialData",
           "host": [
@@ -42,8 +38,7 @@
             "loadInitialData"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "2.1 POST Correcto",
@@ -56,15 +51,12 @@
               "    pm.response.to.have.status(201);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n  \"country\": \"testland\",\r\n  \"year\": 2026,\r\n  \"happiness_score\": 9.99,\r\n  \"gdp_per_capita\": 2.0,\r\n  \"social_support\": 1.5\r\n}",
@@ -79,10 +71,8 @@
           "host": [
             "{{url_base}}"
           ]
-        },
-        "description": "StartFragment{  \n\"country\": \"testland\",  \n\"year\": 2026,  \n\"happiness_score\": 9.99,  \n\"gdp_per_capita\": 2.0,  \n\"social_support\": 1.5  \n}EndFragment"
-      },
-      "response": []
+        }
+      }
     },
     {
       "name": "2.2 POST Error 400 (Faltan campos)",
@@ -95,15 +85,12 @@
               "    pm.response.to.have.status(400);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n    \"country\": \"errorland\",\r\n    \"year\": 2026\r\n}",
@@ -118,10 +105,8 @@
           "host": [
             "{{url_base}}"
           ]
-        },
-        "description": "StartFragment{  \n\"country\": \"testland\",  \n\"year\": 2026,  \n\"happiness_score\": 9.99,  \n\"gdp_per_capita\": 2.0,  \n\"social_support\": 1.5  \n}EndFragment"
-      },
-      "response": []
+        }
+      }
     },
     {
       "name": "2.3 POST Error 409 (Ya existe)",
@@ -134,15 +119,12 @@
               "    pm.response.to.have.status(409);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n  \"country\": \"testland\",\r\n  \"year\": 2026,\r\n  \"happiness_score\": 9.99,\r\n  \"gdp_per_capita\": 2.0,\r\n  \"social_support\": 1.5\r\n}",
@@ -157,10 +139,8 @@
           "host": [
             "{{url_base}}"
           ]
-        },
-        "description": "StartFragment{  \n\"country\": \"testland\",  \n\"year\": 2026,  \n\"happiness_score\": 9.99,  \n\"gdp_per_capita\": 2.0,  \n\"social_support\": 1.5  \n}EndFragment"
-      },
-      "response": []
+        }
+      }
     },
     {
       "name": "3. PUT Colección (Error 405)",
@@ -173,70 +153,19 @@
               "    pm.response.to.have.status(405);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}",
           "host": [
             "{{url_base}}"
           ]
         }
-      },
-      "response": []
-    },
-    {
-      "name": "4. DELETE Colección",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"El código de estado es 200 o 204\", function () {\r",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
-              "});"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{url_base}}",
-          "host": [
-            "{{url_base}}"
-          ]
-        }
-      },
-      "response": []
+      }
     },
     {
       "name": "5.1 GET Recurso Correcto",
@@ -252,32 +181,16 @@
               "pm.test(\"Devuelve un objeto con las propiedades correctas\", function () {\r",
               "    var jsonData = pm.response.json();\r",
               "    pm.expect(jsonData).to.be.an(\"object\");\r",
-              "    // Cambia \"country\" y \"year\" por los campos reales de tu recurso\r",
               "    pm.expect(jsonData).to.have.property(\"country\"); \r",
               "    pm.expect(jsonData).to.have.property(\"year\");\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
-      "protocolProfileBehavior": {
-        "disableBodyPruning": true
-      },
       "request": {
         "method": "GET",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}/testland/2026",
           "host": [
@@ -288,8 +201,7 @@
             "2026"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "5.2 GET Recurso Inexistente (Error 404)",
@@ -302,27 +214,12 @@
               "    pm.response.to.have.status(404);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
-      "protocolProfileBehavior": {
-        "disableBodyPruning": true
-      },
       "request": {
         "method": "GET",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}/inventado/666",
           "host": [
@@ -333,8 +230,7 @@
             "666"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "6. POST a un recurso específico (NO PERMITIDO) (405)",
@@ -347,24 +243,12 @@
               "    pm.response.to.have.status(405);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}/testland/2026",
           "host": [
@@ -375,8 +259,7 @@
             "2026"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "7.1 PUT Correcto",
@@ -389,15 +272,12 @@
               "    pm.response.to.have.status(200);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "PUT",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n    \"country\": \"testland\",\r\n    \"year\": 2026,\r\n    \"happiness_score\": 10.0,\r\n    \"gdp_per_capita\": 2.5,\r\n    \"social_support\": 2.0\r\n}",
@@ -417,8 +297,7 @@
             "2026"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "7.2 PUT Error 400 (IDs no coinciden)",
@@ -431,15 +310,12 @@
               "    pm.response.to.have.status(400);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "PUT",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n    \"country\": \"OTRO-PAIS\",\r\n    \"year\": 2026,\r\n    \"happiness_score\": 10.0,\r\n    \"gdp_per_capita\": 2.5,\r\n    \"social_support\": 2.0\r\n}",
@@ -459,8 +335,7 @@
             "2026"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "7.3 PUT Error 404 (No existe)",
@@ -473,15 +348,12 @@
               "    pm.response.to.have.status(404);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "PUT",
-        "header": [],
         "body": {
           "mode": "raw",
           "raw": "{\r\n    \"country\": \"inventado\",\r\n    \"year\": 666,\r\n    \"happiness_score\": 10.0,\r\n    \"gdp_per_capita\": 2.5,\r\n    \"social_support\": 2.0\r\n}",
@@ -501,8 +373,7 @@
             "666"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "8.1 DELETE Recurso Inexistente (Error 404)",
@@ -515,24 +386,12 @@
               "    pm.response.to.have.status(404);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "DELETE",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}/inventado/3000",
           "host": [
@@ -543,8 +402,7 @@
             "3000"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "8.2 DELETE Recurso Correcto",
@@ -557,24 +415,12 @@
               "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "DELETE",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{url_base}}/testland/2026",
           "host": [
@@ -585,38 +431,32 @@
             "2026"
           ]
         }
-      },
-      "response": []
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
       }
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
+      "name": "4. DELETE Colección",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"El código de estado es 200 o 204\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{url_base}}",
+          "host": [
+            "{{url_base}}"
+          ]
+        }
       }
-    }
-  ],
-  "variable": [
-    {
-      "key": "url_base",
-      "value": ""
     }
   ]
 }
