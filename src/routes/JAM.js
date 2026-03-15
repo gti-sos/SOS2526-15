@@ -1,13 +1,11 @@
-import dataStore from 'nedb';
 const API_URL_JAM = "/api/v1/happiness-indices";
-// IMPORTANTE: Pon aquí el enlace de tu documentación de Postman
-const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/PON_TU_ENLACE_AQUI"; 
+// IMPORTANTE: Pon aquí tu enlace de documentación real si lo tienes
+const DOCUMENTATION_JAM = "https://documenter.getpostman.com/view/TU_ENLACE_AQUI"; 
 
 export function loadBackendJAM(app) {
-    // 1. Inicializo la base de datos NeDB
-    let db = new dataStore();
+    // Array que hará de base de datos
+    let db = []; 
 
-    // 2. Datos iniciales
     const datosHappiness = [
         { country: "finland", year: 2023, happiness_score: 7.804, gdp_per_capita: 1.888, social_support: 1.585 },
         { country: "denmark", year: 2023, happiness_score: 7.586, gdp_per_capita: 1.949, social_support: 1.548 },
@@ -31,34 +29,24 @@ export function loadBackendJAM(app) {
         { country: "south_africa", year: 2023, happiness_score: 5.275, gdp_per_capita: 1.417, social_support: 1.221 },
         { country: "finland", year: 2022, happiness_score: 7.803, gdp_per_capita: 1.887, social_support: 1.583 }
     ];
-
+    
     // ================== RUTAS ESPECIALES ==================
 
-    // Redirección a la documentación
     app.get(`${API_URL_JAM}/docs`, (req, res) => {
         res.redirect(DOCUMENTATION_JAM);
     });
 
-    // Carga inicial de datos
     app.get(`${API_URL_JAM}/loadInitialData`, (req, res) => {
-        db.find({}, (err, docs) => {
-            if (err) return res.sendStatus(500);
-
-            if (docs.length === 0) {
-                db.insert(datosHappiness, (err, newDocs) => {
-                    if (err) return res.sendStatus(500);
-                    newDocs.forEach(d => delete d._id); // Quitamos _id
-                    res.status(201).json(newDocs);
-                });
-            } else {
-                res.status(409).json({ message: "Los datos ya estaban cargados" });
-            }
-        });
+        if (db.length === 0) {
+            db = JSON.parse(JSON.stringify(datosHappiness)); // Copia profunda
+            res.status(201).json(db);
+        } else {
+            res.status(409).json({ message: "Los datos ya estaban cargados" });
+        }
     });
 
     // ================== CONTROL DE ERRORES 405 ==================
 
-    // 405 para la colección base (solo permite GET, POST, DELETE)
     app.all(API_URL_JAM, (req, res, next) => {
         if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
             return res.status(405).json({ message: "Method Not Allowed" });
@@ -66,12 +54,10 @@ export function loadBackendJAM(app) {
         next();
     });
 
-    // 405 para rutas con solo país (NO se permite nada según tu diseño basado en :country/:year)
     app.all(`${API_URL_JAM}/:country`, (req, res) => {
         return res.status(405).json({ message: "Method Not Allowed" });
     });
 
-    // 405 para recurso específico (solo permite GET, PUT, DELETE)
     app.all(`${API_URL_JAM}/:country/:year`, (req, res, next) => {
         if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
             return res.status(405).json({ message: "Method Not Allowed" });
@@ -79,134 +65,88 @@ export function loadBackendJAM(app) {
         next();
     });
 
-    // ================== API REST JAM ==================
+    // ================== API REST ==================
 
-    // GET a la colección (con búsqueda y paginación)
+    // GET Colección
     app.get(API_URL_JAM, (req, res) => {
-        let searchQuery = { ...req.query };
-        let limit = 0;
-        let offset = 0;
-
-        // Paginación
-        if (req.query.limit) {
-            limit = parseInt(req.query.limit);
-            delete searchQuery.limit;
-        }
-        if (req.query.offset) {
-            offset = parseInt(req.query.offset);
-            delete searchQuery.offset;
-        }
-
-        // Búsqueda: Convertimos a número los campos numéricos
-        if (searchQuery.year) searchQuery.year = parseInt(searchQuery.year);
-        if (searchQuery.happiness_score) searchQuery.happiness_score = parseFloat(searchQuery.happiness_score);
-        if (searchQuery.gdp_per_capita) searchQuery.gdp_per_capita = parseFloat(searchQuery.gdp_per_capita);
-        if (searchQuery.social_support) searchQuery.social_support = parseFloat(searchQuery.social_support);
-
-        db.find(searchQuery).skip(offset).limit(limit).exec((err, docs) => {
-            if (err) return res.sendStatus(500);
-            
-            docs.forEach(doc => delete doc._id); // Quitamos _id
-            res.status(200).json(docs);
-        });
+        res.status(200).json(db);
     });
 
-    // POST a la colección
+    // POST Colección
     app.post(API_URL_JAM, (req, res) => {
         let newData = req.body;
 
-        // Comprobamos campos obligatorios (400)
         if (!newData || !newData.country || !newData.year || !newData.happiness_score || !newData.gdp_per_capita || !newData.social_support) {
             return res.status(400).json({ message: "Faltan campos obligatorios" });
         }
 
-        // Convertimos a número para asegurar la consistencia en BD
         newData.year = parseInt(newData.year);
-        newData.happiness_score = parseFloat(newData.happiness_score);
-        newData.gdp_per_capita = parseFloat(newData.gdp_per_capita);
-        newData.social_support = parseFloat(newData.social_support);
 
-        // Comprobamos conflicto (409)
-        db.find({ country: newData.country, year: newData.year }, (err, docs) => {
-            if (err) return res.sendStatus(500);
-            if (docs.length > 0) {
-                return res.status(409).json({ message: "El recurso ya existe" });
-            }
+        const exists = db.find(d => d.country === newData.country && d.year === newData.year);
+        if (exists) {
+            return res.status(409).json({ message: "El recurso ya existe" });
+        }
 
-            db.insert(newData, (err, newDoc) => {
-                if (err) return res.sendStatus(500);
-                delete newDoc._id; // Quitamos _id
-                res.status(201).json(newDoc);
-            });
-        });
+        db.push(newData);
+        res.status(201).json(newData);
     });
 
-    // DELETE a la colección
+    // DELETE Colección
     app.delete(API_URL_JAM, (req, res) => {
-        db.remove({}, { multi: true }, (err, numRemoved) => {
-            if (err) return res.sendStatus(500);
-            res.sendStatus(204); // 204 No Content es ideal para DELETE exitosos
-        });
+        db = [];
+        res.status(204).send();
     });
 
-    // GET a un recurso específico
+    // GET Recurso Específico
     app.get(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
 
-        db.findOne({ country: country, year: year }, (err, doc) => {
-            if (err) return res.sendStatus(500);
-            if (!doc) {
-                return res.status(404).json({ message: "Recurso no encontrado" });
-            }
-            
-            delete doc._id; // Quitamos _id
-            res.status(200).json(doc);
-        });
+        const resource = db.find(d => d.country === country && d.year === year);
+        if (resource) {
+            res.status(200).json(resource);
+        } else {
+            res.status(404).json({ message: "Recurso no encontrado" });
+        }
     });
 
-    // PUT a un recurso específico
+    // PUT Recurso Específico
     app.put(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
         let body = req.body;
 
-        // Validamos que los parámetros de la URL coincidan con el body (400)
         if (body.country !== country || parseInt(body.year) !== year) {
-            return res.status(400).json({ message: "Los identificadores de la URL no coinciden con los del cuerpo" });
+            return res.status(400).json({ message: "Los identificadores no coinciden" });
         }
 
-        // Validamos campos obligatorios
         if (!body.happiness_score || !body.gdp_per_capita || !body.social_support) {
             return res.status(400).json({ message: "Faltan campos obligatorios" });
         }
 
-        // Aseguramos tipos
-        body.year = parseInt(body.year);
-        body.happiness_score = parseFloat(body.happiness_score);
-        body.gdp_per_capita = parseFloat(body.gdp_per_capita);
-        body.social_support = parseFloat(body.social_support);
-
-        db.update({ country: country, year: year }, body, {}, (err, numUpdated) => {
-            if (err) return res.sendStatus(500);
-            if (numUpdated === 0) {
-                return res.status(404).json({ message: "Recurso no encontrado" });
-            }
-            res.status(200).json(body); // Devolvemos el objeto actualizado sin el _id
-        });
+        const index = db.findIndex(d => d.country === country && d.year === year);
+        
+        if (index !== -1) {
+            body.year = parseInt(body.year);
+            db[index] = body;
+            res.status(200).json(db[index]);
+        } else {
+            res.status(404).json({ message: "Recurso no encontrado" });
+        }
     });
 
-    // DELETE a un recurso específico
+    // DELETE Recurso Específico
     app.delete(`${API_URL_JAM}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
 
-        db.remove({ country: country, year: year }, {}, (err, numRemoved) => {
-            if (err) return res.sendStatus(500);
-            if (numRemoved === 0) {
-                return res.status(404).json({ message: "Recurso no encontrado" });
-            }
-            res.sendStatus(204);
-        });
+        const initialLength = db.length;
+        db = db.filter(d => !(d.country === country && d.year === year));
+
+        if (db.length < initialLength) {
+            res.status(204).send();
+        } else {
+            res.status(404).json({ message: "Recurso no encontrado" });
+        }
     });
 }
