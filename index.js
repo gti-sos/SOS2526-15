@@ -1,151 +1,26 @@
 import express from 'express';
 import cool from 'cool-ascii-faces';
+
 const app = express();
 const port = process.env.PORT || 8080; 
 import {loadBackendSMB} from './src/routes/SMB.js';
+import {loadBackendYHX} from './src/routes/YHX.js';
 
 app.use('/', express.static('public'));
 
 app.use(express.json());
-// api rest YHX
-let stats = [];
-
-const API_URL = "/api/v1/population-densities";
-// ----------------------------------
 
 // api rest JAM
 const API_URL_JAM = "/api/v1/happiness-indices";
 let happinessIndices = [];
 // -----------------------------------
 
-
 loadBackendSMB(app);
+loadBackendYHX(app);
 
 app.listen(port, () => {
     console.log(`Server ready at port ${port}`);
 });
-
-// --- Datos y algoritmo de YHX ---
-const datosDemograficos = [
-    { country: "españa", year: 2025, density: 98, population: 49337356, percentage_change: 0.49 },
-    { country: "españa", year: 2024, density: 97, population: 49096877, percentage_change: 0.59 },
-    { country: "españa", year: 2023, density: 96, population: 48628256, percentage_change: 0.51 },
-    { country: "españa", year: 2022, density: 95, population: 48047631, percentage_change: 0.53 },
-    { country: "alemania", year: 2022, density: 232, population: 83118501, percentage_change: -0.14 },
-    { country: "alemania", year: 2023, density: 233, population: 83456045, percentage_change: 0.41 },
-    { country: "alemania", year: 2024, density: 234, population: 83577140, percentage_change: 0.15 },
-    { country: "alemania", year: 2025, density: 234, population: 83577140, percentage_change: 0.15 },
-    { country: "ucrania", year: 2023, density: 63, population: 37732836, percentage_change: -8.08 },
-    { country: "ucrania", year: 2022, density: 68, population: 41048766, percentage_change: 0.12 }
-];
-
-function mediaPoblacion(pais) {
-    let subconjunto = datosDemograficos.filter(d => d.country === pais);
-    
-    if (subconjunto.length === 0) {
-        return 0;
-    }
-
-    let sumaPoblacion = subconjunto.reduce((acumulador, d) => acumulador + d.population, 0);
-    let media = sumaPoblacion / subconjunto.length;
-    
-    return media;
-}
-
-app.get('/samples/YHX', (req, res) => {
-    // Calculamos la media llamando a tu función
-    const media = mediaPoblacion("españa");
-    
-    // Enviamos el resultado al navegador web
-    res.send(`Media de población en España: ${media.toLocaleString('es-ES')}`);
-});
-
-
-app.get(`${API_URL}/loadInitialData`, (req, res) => {
-    if (stats.length === 0) {
-        stats = [...datosDemograficos]; 
-        res.status(201).json(stats);
-    } else {
-        res.status(409).json({ message: "Los datos ya estaban cargados" });
-    }
-});
-
-// 2. Colección Base: /api/v1/population-densities
-app.get(API_URL, (req, res) => {
-    res.status(200).json(stats);
-});
-
-app.post(API_URL, (req, res) => {
-    const newData = req.body;
-    if (!newData.country || !newData.year || !newData.density || !newData.population || !newData.percentage_change) {
-        return res.status(400).json({ message: "Faltan campos obligatorios" });
-    }
-    const exists = stats.find(s => s.country === newData.country && s.year === newData.year);
-    if (exists) {
-        return res.status(409).json({ message: "El recurso ya existe" });
-    }
-    stats.push(newData);
-    res.status(201).json({ message: "Recurso creado correctamente" });
-});
-
-app.put(API_URL, (req, res) => {
-    res.status(405).json({ message: "Método no permitido en la colección base" });
-});
-
-app.delete(API_URL, (req, res) => {
-    stats = [];
-    res.status(200).json({ message: "Todos los recursos borrados" });
-});
-
-// 3. Recurso Específico: /api/v1/population-densities/:country/:year
-app.get(`${API_URL}/:country/:year`, (req, res) => {
-    const { country, year } = req.params;
-    const stat = stats.find(s => s.country === country && s.year === parseInt(year));
-    if (stat) {
-        res.status(200).json(stat);
-    } else {
-        res.status(404).json({ message: "Recurso no encontrado" });
-    }
-});
-
-app.post(`${API_URL}/:country/:year`, (req, res) => {
-    res.status(405).json({ message: "Método no permitido. Usa POST en la colección base." });
-});
-
-app.put(`${API_URL}/:country/:year`, (req, res) => {
-    const { country, year } = req.params;
-    const updateData = req.body;
-
-    if (!updateData.country || !updateData.year || !updateData.density || !updateData.population || !updateData.percentage_change) {
-        return res.status(400).json({ message: "Faltan campos en el cuerpo de la petición" });
-    }
-    if (updateData.country !== country || updateData.year !== parseInt(year)) {
-        return res.status(400).json({ message: "Los IDs de la URL y del body no coinciden" });
-    }
-
-    const index = stats.findIndex(s => s.country === country && s.year === parseInt(year));
-    if (index !== -1) {
-        stats[index] = updateData;
-        res.status(200).json({ message: "Recurso actualizado" });
-    } else {
-        res.status(404).json({ message: "Recurso no encontrado" });
-    }
-});
-
-app.delete(`${API_URL}/:country/:year`, (req, res) => {
-    const { country, year } = req.params;
-    const initialLength = stats.length;
-    stats = stats.filter(s => !(s.country === country && s.year === parseInt(year)));
-
-    if (stats.length < initialLength) {
-        res.status(200).json({ message: "Recurso borrado" });
-    } else {
-        res.status(404).json({ message: "Recurso no encontrado" });
-    }
-});
-
-//_____________________________________________________________Fin tareas YHX_________________________
-
 
 //--- Datos y algoritmo de JAM ---
 const datosHappiness = [
@@ -218,8 +93,6 @@ app.get(API_URL_JAM, (req, res) => {
     res.status(200).json(happinessIndices);
 });
 //_____________________________________________________________Fin tareas JAM_________________________
-
-//_____________________________________________________________Fin tareas SMB_________________________
 
 // =========================================================================
 // ==================== INICIO API REST JAM ================================
