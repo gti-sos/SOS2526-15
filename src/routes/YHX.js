@@ -233,13 +233,13 @@ export function loadBackendYHX(app){
     });
 
     //POST restriccion
-    app.post("/:country", (req, res) => {
+    app.post(`${API_URL}/:country`, (req, res) => {
         return res.status(405).json({error: "POST not allowed on /:country"});
 
     });
 
     //PUT restriccion
-    app.put("/", (req, res) => {
+    app.put(`${API_URL}/`, (req, res) => {
         return res.status(405).json({error: "PUT not allowed on /"});
     });
     //_____________________________________________________________Fin tareas YHX_________________________
