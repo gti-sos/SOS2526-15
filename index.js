@@ -19,7 +19,3 @@ loadBackendJAM(app);
 app.listen(port, () => {
     console.log(`Server ready at port ${port}`);
 });
-
-app.get('/cool', (req, res) => {
-    res.send(cool());
-});
