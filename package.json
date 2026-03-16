@@ -1,23 +1,22 @@
 {
   "name": "sos2526-15",
-  "version": "0.0.0",
-  "description": "npm init",
+  "version": "1.0.0",
+  "description": "Proyecto SOS2526-15 - Happiness Indices",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test-api-online": "npx newman run tests/SMB/api-test.json -e tests/SMB/api-test-env-render.json",
-    "test-online": "start-server-and-test start http://localhost:8080 test-api-online",
-    "test": "npm run test-online && test-api-JAM && tests/YHX/api-test.json",
     "test-JAM": "npx newman run \"tests/JAM/SOS2526-15 JAM - Happiness Indices.postman_collection.json\" -e \"tests/JAM/Local.postman_environment.json\"",
-    "test-api-JAM": "start-server-and-test start http://localhost:8080 test-JAM"
+    "test-SMB": "npx newman run tests/SMB/api-test.json -e tests/SMB/api-test-env-render.json",
+    "test-online": "start-server-and-test start http://localhost:8080 test-api-online",
+    "test": "npm run test-JAM"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gti-sos/SOS2526-15.git"
   },
-  "author": "",
+  "author": "JAM",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/gti-sos/SOS2526-15/issues"
   },
@@ -26,10 +25,11 @@
     "@seald-io/nedb": "^4.1.2",
     "cool-ascii-faces": "^1.3.4",
     "express": "^5.2.1",
-    "nedb": "^1.8.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "start-server-and-test": "^2.1.5"
+    "newman": "^6.1.3",
+    "start-server-and-test": "^2.1.5",
+    "wait-on": "^7.2.0"
   }
 }
