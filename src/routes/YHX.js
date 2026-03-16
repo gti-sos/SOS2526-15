@@ -50,7 +50,7 @@ export function loadBackendYHX(app){
     });
 
     app.all(`${API_URL}/:country`, (req, res, next) => {
-        if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        if (req.method !== "GET" && req.method !== "DELETE") {
             return res.status(405).json({ message: "Method Not Allowed" });
         }
         next();
@@ -84,30 +84,6 @@ export function loadBackendYHX(app){
 
             });
         });
-    });
-
-    app.put(`${API_URL}/:country`, (req, res) => {
-
-        let country = req.params.country;
-        let body = req.body;
-
-        if (body.country !== country) {
-            return res.status(400).json({
-                message: "El recurso del body debe coincidir con el de la URL"
-            });
-        }
-
-        db.update(
-            { country: country},
-            body,
-            {},
-            (err, numUpdated) => {
-                if (numUpdated === 0) {
-                    return res.status(404).json({ message: "Recurso no encontrado" });
-                }
-                res.status(200).json({ message: "Recurso actualizado con éxito" });
-            }
-        );
     });
 
     app.put(`${API_URL}/:country/:year`, (req, res) => {
@@ -178,44 +154,55 @@ export function loadBackendYHX(app){
     app.get(API_URL, (req, res) => {
         let query = {};
 
-        if (req.query.country) {
-            query.country = req.query.country;
-        }
+        // Búsquedas exactas
+        if (req.query.country) query.country = req.query.country;
+        if (req.query.density) query.density = parseFloat(req.query.density);
+        if (req.query.population) query.population = parseFloat(req.query.population);
+        if (req.query.percentage_change) query.percentage_change = parseFloat(req.query.percentage_change);
 
-        if (req.query.year) {
+        // Búsqueda por periodos (from / to) o año exacto
+        if (req.query.from && req.query.to) {
+            query.year = { $gte: parseInt(req.query.from), $lte: parseInt(req.query.to) };
+        } else if (req.query.from) {
+            query.year = { $gte: parseInt(req.query.from) };
+        } else if (req.query.to) {
+            query.year = { $lte: parseInt(req.query.to) };
+        } else if (req.query.year) {
             query.year = parseInt(req.query.year);
         }
 
-        if (req.query.density) {
-            query.density = parseFloat(req.query.density);
-        }
+        let cursor = db.find(query);
 
-        if (req.query.population) {
-            query.population = parseFloat(req.query.population);
-        }
+        // Paginación (limit / offset)
+        if (req.query.offset) cursor = cursor.skip(parseInt(req.query.offset));
+        if (req.query.limit) cursor = cursor.limit(parseInt(req.query.limit));
 
-        if (req.query.percentage_change) {
-            query.percentage_change = parseFloat(req.query.percentage_change);
-        }
-
-        db.find(query, (err, docs) => {
-            if (err) {
-                return res.sendStatus(500);
-            }
+        cursor.exec((err, docs) => {
+            if (err) return res.sendStatus(500);
             docs.forEach(d => delete d._id);
-            res.status(200).json(docs);
+            res.status(200).json(docs); // Si no encuentra datos, NeDB devuelve [] automáticamente (Patrón correcto)
         });
     });
 
     app.get(`${API_URL}/:country`, (req, res) => {
         let country = req.params.country;
+        let query = { country: country };
 
-        db.findOne({ country: country}, (err, doc) => {
-            if (!doc) {
-                return res.status(404).json({});
-            }
-            delete doc._id;
-            res.status(200).json(doc);
+        // Búsqueda por periodos (from / to) dentro de un país
+        if (req.query.from && req.query.to) {
+            query.year = { $gte: parseInt(req.query.from), $lte: parseInt(req.query.to) };
+        } else if (req.query.from) {
+            query.year = { $gte: parseInt(req.query.from) };
+        } else if (req.query.to) {
+            query.year = { $lte: parseInt(req.query.to) };
+        }
+
+        // Usamos db.find() en lugar de db.findOne() para que devuelva un ARRAY
+        db.find(query, (err, docs) => {
+            if (err) return res.sendStatus(500);
+            
+            docs.forEach(d => delete d._id);
+            res.status(200).json(docs); // Devuelve un Array, esté lleno o vacío (Patrón correcto)
         });
     });
 
