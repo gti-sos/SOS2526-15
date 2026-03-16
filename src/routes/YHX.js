@@ -1,12 +1,11 @@
-import dataStore from 'nedb';
-let db = new dataStore()
-const API_URL = "/api/v1/population-densities";
-// ----------------------------------
+import Datastore from 'nedb';
 
-export function loadBackendYHX(app){
-    let stats = [];
-    db.insert(stats);
-    // --- Datos y algoritmo de YHX ---
+// Inicializamos la base de datos correctamente
+const db = new Datastore({ filename: './population-densities.db', autoload: true });
+const API_URL = "/api/v1/population-densities";
+
+export function loadBackendYHX(app) {
+    // --- Datos Iniciales ---
     const datosDemograficos = [
         { country: "españa", year: 2025, density: 98, population: 49337356, percentage_change: 0.49 },
         { country: "españa", year: 2024, density: 97, population: 49096877, percentage_change: 0.59 },
@@ -19,138 +18,51 @@ export function loadBackendYHX(app){
         { country: "ucrania", year: 2023, density: 63, population: 37732836, percentage_change: -8.08 },
         { country: "ucrania", year: 2022, density: 68, population: 41048766, percentage_change: 0.12 }
     ];
+
     const DOCUMENTATION = "https://documenter.getpostman.com/view/52392777/2sBXigMtFk";
 
+    // ================= DOCUMENTACIÓN Y CARGA INICIAL =================
     app.get(`${API_URL}/docs`, (req, res) => {
-    res.redirect(DOCUMENTATION);
+        res.redirect(DOCUMENTATION);
     });
 
     app.get(`${API_URL}/loadInitialData`, (req, res) => {
         db.find({}, (err, docs) => {
             if (docs.length === 0) {
                 db.insert(datosDemograficos, (err, newDocs) => {
-                    if (err){
-                        return res.sendStatus(500);
-                    }
-
+                    if (err) return res.sendStatus(500);
                     newDocs.forEach(d => delete d._id);
                     res.status(201).json(newDocs);
                 });
             } else {
-                res.status(409).json({ message: "Los datos ya estaban cargados" })
+                res.status(409).json({ message: "Los datos ya estaban cargados" });
             }
         });
     });
 
+    // ================= MIDDLEWARES (405 Method Not Allowed) =================
     app.all(API_URL, (req, res, next) => {
-        if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
+        if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE" && req.method !== "PUT") {
             return res.status(405).json({ message: "Method Not Allowed" });
         }
         next();
     });
 
     app.all(`${API_URL}/:country`, (req, res, next) => {
-        if (req.method !== "GET" && req.method !== "DELETE") {
+        if (req.method !== "GET" && req.method !== "DELETE" && req.method !== "POST" && req.method !== "PUT") {
             return res.status(405).json({ message: "Method Not Allowed" });
         }
         next();
     });
 
     app.all(`${API_URL}/:country/:year`, (req, res, next) => {
-        if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE") {
+        if (req.method !== "GET" && req.method !== "PUT" && req.method !== "DELETE" && req.method !== "POST") {
             return res.status(405).json({ message: "Method Not Allowed" });
         }
         next();
     });
 
-    app.post(API_URL, (req, res) => {
-        let newWage = req.body;
-
-        if (!newWage.country || !newWage.year) {
-            return res.status(400).json({ message: "Missing fields" });
-        }
-
-        db.find({ country: newWage.country, year: newWage.year }, (err, docs) => {
-
-            if (docs.length > 0) {
-                return res.status(409).json({ message: "Resource already exists" });
-            }
-
-            db.insert(newWage, (err, newDoc) => {
-
-                delete newDoc._id;
-
-                res.status(201).json(newDoc);
-
-            });
-        });
-    });
-
-    app.put(`${API_URL}/:country/:year`, (req, res) => {
-
-        let country = req.params.country;
-        let year = parseInt(req.params.year);
-        let body = req.body;
-
-        if (body.country !== country || body.year !== year) {
-            return res.status(400).json({
-                message: "El recurso del body debe coincidir con el de la URL"
-            });
-        }
-
-        db.update(
-            { country: country, year: year },
-            body,
-            {},
-            (err, numUpdated) => {
-
-                if (numUpdated === 0) {
-                    return res.status(404).json({});
-                }
-
-                res.status(200).json(body);
-
-            }
-        );
-
-    });
-
-    app.delete(API_URL, (req, res) => {
-        db.remove({}, { multi: true }, (err, numRemoved) => {
-            res.sendStatus(204);
-        });
-    });
-
-    app.delete(`${API_URL}/:country`, (req, res) => {
-        let country = req.params.country;
-        db.remove(
-            { country: country},
-            {},
-            (err, numRemoved) => {
-                if (numRemoved === 0) {
-                    return res.status(404).json({});
-                }
-                res.sendStatus(204);
-            }
-        );
-    });
-
-    app.delete(`${API_URL}/:country/:year`, (req, res) => {
-        let country = req.params.country;
-        let year = parseInt(req.params.year);
-
-        db.remove(
-            { country: country, year: year },
-            {},
-            (err, numRemoved) => {
-                if (numRemoved === 0) {
-                    return res.status(404).json({});
-                }
-                res.sendStatus(204);
-            }
-        );
-    });
-
+    // ================= GET GENERAL (Con from/to y Paginación) =================
     app.get(API_URL, (req, res) => {
         let query = {};
 
@@ -160,7 +72,7 @@ export function loadBackendYHX(app){
         if (req.query.population) query.population = parseFloat(req.query.population);
         if (req.query.percentage_change) query.percentage_change = parseFloat(req.query.percentage_change);
 
-        // Búsqueda por periodos (from / to) o año exacto
+        // Búsqueda por rango (from/to) o año exacto
         if (req.query.from && req.query.to) {
             query.year = { $gte: parseInt(req.query.from), $lte: parseInt(req.query.to) };
         } else if (req.query.from) {
@@ -173,22 +85,22 @@ export function loadBackendYHX(app){
 
         let cursor = db.find(query);
 
-        // Paginación (limit / offset)
+        // Paginación (limit y offset)
         if (req.query.offset) cursor = cursor.skip(parseInt(req.query.offset));
         if (req.query.limit) cursor = cursor.limit(parseInt(req.query.limit));
 
         cursor.exec((err, docs) => {
             if (err) return res.sendStatus(500);
             docs.forEach(d => delete d._id);
-            res.status(200).json(docs); // Si no encuentra datos, NeDB devuelve [] automáticamente (Patrón correcto)
+            res.status(200).json(docs); // Si está vacío devuelve []
         });
     });
 
+    // ================= GET POR PAÍS (Devuelve ARRAY y admite from/to) =================
     app.get(`${API_URL}/:country`, (req, res) => {
         let country = req.params.country;
         let query = { country: country };
 
-        // Búsqueda por periodos (from / to) dentro de un país
         if (req.query.from && req.query.to) {
             query.year = { $gte: parseInt(req.query.from), $lte: parseInt(req.query.to) };
         } else if (req.query.from) {
@@ -197,38 +109,97 @@ export function loadBackendYHX(app){
             query.year = { $lte: parseInt(req.query.to) };
         }
 
-        // Usamos db.find() en lugar de db.findOne() para que devuelva un ARRAY
         db.find(query, (err, docs) => {
             if (err) return res.sendStatus(500);
-            
             docs.forEach(d => delete d._id);
-            res.status(200).json(docs); // Devuelve un Array, esté lleno o vacío (Patrón correcto)
+            res.status(200).json(docs); // Si no encuentra el país devuelve []
         });
     });
 
+    // ================= GET ESPECÍFICO (Devuelve OBJETO) =================
     app.get(`${API_URL}/:country/:year`, (req, res) => {
         let country = req.params.country;
         let year = parseInt(req.params.year);
 
         db.findOne({ country: country, year: year }, (err, doc) => {
-            if (!doc) {
-                return res.status(404).json({});
-            }
+            if (!doc) return res.status(404).json({});
             delete doc._id;
             res.status(200).json(doc);
         });
     });
 
-    //POST restriccion
-    app.post(`${API_URL}/:country`, (req, res) => {
-        return res.status(405).json({error: "POST not allowed on /:country"});
+    // ================= POST =================
+    app.post(API_URL, (req, res) => {
+        let newWage = req.body;
 
+        if (!newWage.country || !newWage.year) {
+            return res.status(400).json({ message: "Missing fields" });
+        }
+
+        db.find({ country: newWage.country, year: newWage.year }, (err, docs) => {
+            if (docs.length > 0) return res.status(409).json({ message: "Resource already exists" });
+
+            db.insert(newWage, (err, newDoc) => {
+                delete newDoc._id;
+                res.status(201).json(newDoc);
+            });
+        });
     });
 
-    //PUT restriccion
+    app.post(`${API_URL}/:country`, (req, res) => {
+        return res.status(405).json({error: "POST not allowed on /:country"});
+    });
+
+    app.post(`${API_URL}/:country/:year`, (req, res) => {
+        return res.status(405).json({error: "POST not allowed on /:country/:year"});
+    });
+
+    // ================= PUT =================
     app.put(`${API_URL}/`, (req, res) => {
         return res.status(405).json({error: "PUT not allowed on /"});
     });
-    //_____________________________________________________________Fin tareas YHX_________________________
-}
 
+    app.put(`${API_URL}/:country`, (req, res) => {
+        return res.status(405).json({error: "PUT not allowed on /:country"});
+    });
+
+    app.put(`${API_URL}/:country/:year`, (req, res) => {
+        let country = req.params.country;
+        let year = parseInt(req.params.year);
+        let body = req.body;
+
+        if (body.country !== country || body.year !== year) {
+            return res.status(400).json({ message: "El recurso del body debe coincidir con el de la URL" });
+        }
+
+        db.update({ country: country, year: year }, body, {}, (err, numUpdated) => {
+            if (numUpdated === 0) return res.status(404).json({});
+            res.status(200).json(body);
+        });
+    });
+
+    // ================= DELETE =================
+    app.delete(API_URL, (req, res) => {
+        db.remove({}, { multi: true }, (err, numRemoved) => {
+            res.sendStatus(204);
+        });
+    });
+
+    app.delete(`${API_URL}/:country`, (req, res) => {
+        let country = req.params.country;
+        db.remove({ country: country}, { multi: true }, (err, numRemoved) => {
+            if (numRemoved === 0) return res.status(404).json({});
+            res.sendStatus(204);
+        });
+    });
+
+    app.delete(`${API_URL}/:country/:year`, (req, res) => {
+        let country = req.params.country;
+        let year = parseInt(req.params.year);
+
+        db.remove({ country: country, year: year }, {}, (err, numRemoved) => {
+            if (numRemoved === 0) return res.status(404).json({});
+            res.sendStatus(204);
+        });
+    });
+}
