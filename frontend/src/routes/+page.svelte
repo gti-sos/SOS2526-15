@@ -1,3 +1,9 @@
+<h1>Welcome to SvelteKit</h1>
+<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+
+
+#lo nuevo 
+
 <script>
     const repoUrl = "https://github.com/gti-sos/SOS2526-15"; 
 </script>
