@@ -1,7 +1,5 @@
 <script>
-    // Aquí guardamos el enlace al repositorio de vuestro grupo
-    // ⚠️ RECUERDA: Cambia esto por el enlace real de vuestro GitHub
-    const repoUrl = "https://github.com/gti-sos/SOS2526-15-PON-VUESTRO-ENLACE-REAL"; 
+    const repoUrl = "https://github.com/gti-sos/SOS2526-15"; 
 </script>
 
 <svelte:head>
