@@ -24,7 +24,7 @@ jobs:
 
       - name: Start Server and Run Tests
         run: |
-          # 1. Arrancamos el servidor en segundo planoo
+          # 1. Arrancamos el servidor en segundo plano
           node index.js &
           
           # 2. Esperamos un máximo de 20 segundos a que el puerto de tu API esté listo.
