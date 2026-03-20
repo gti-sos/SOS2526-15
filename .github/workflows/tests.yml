@@ -1,4 +1,4 @@
-name: SOS2526-15 Continuous Integration
+name: SOS2526 Continuous Integration
 
 on:
   push:
@@ -22,8 +22,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run all API tests
+      - name: Start Server and Run Tests
         run: |
-          node index.js & 
-          npx wait-on http://localhost:8080/api/v1/happiness-indices/docs
+          # 1. Arrancamos el servidor en segundo plano
+          node index.js &
+          
+          # 2. Esperamos un máximo de 20 segundos a que el puerto de tu API esté listo.
+          # (Si tu API no devuelve nada en la raíz "/", cámbialo por una ruta que sepas que funciona, como la de tu API)
+          npx wait-on -t 20000 http://localhost:8080/api/v1/happiness-indices/docs
+          
+          # 3. Lanzamos todas las pruebas (el comando clave que pide tu profesor)
           npm test
