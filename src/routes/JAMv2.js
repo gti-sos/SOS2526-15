@@ -1,0 +1,1 @@
+const API_URL_JAM = "/api/v2/happiness-indices"; // <--- Ahora es v2
