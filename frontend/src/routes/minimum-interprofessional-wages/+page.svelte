@@ -1,220 +1,213 @@
 <script>
-    const API = "https://sos2526-15.onrender.com/api/v1/minimum-interprofessional-wages";
+  import { dev } from '$app/environment';
+  import { onMount } from 'svelte';
+  import { Button, Table } from '@sveltestrap/sveltestrap';
 
-    let wages = [];
-    let message = "";
-    let error = "";
+  let API = '/api/v1/minimum-interprofessional-wages';
+  if (dev) API = "http://localhost:8080" + API;
 
-    // Formulario
-    let country = "";
-    let date = "";
-    let national_currency_minimum_wage = "";
-    let nmw_on_dollar = "";
-    let percentage_change = "";
+  // @ts-ignore
+  let wages = $state([]);
+  // @ts-ignore
+  let resultMensaje = $state("");
+  // @ts-ignore
+  let mensajeColor = $state("green");
 
-    // ----------------------------
-    // LISTAR TODOS
-    async function loadData() {
-        message = "";
-        error = "";
+  // Campos para crear un nuevo recurso
+  // @ts-ignore
+  let newCountry = $state("");
+  // @ts-ignore
+  let newDate = $state("");
+  // @ts-ignore
+  let newNationalWage = $state("");
+  // @ts-ignore
+  let newDollarWage = $state("");
+  // @ts-ignore
+  let newPercentage = $state("");
 
-        try {
-            const res = await fetch(API);
-            if (!res.ok) throw res;
+  // ---------------- FUNCIONES ----------------
 
-            wages = await res.json();
-            message = "Datos cargados correctamente";
-        } catch (err) {
-            handleError(err, "No se pudieron cargar los datos");
-        }
+  async function getWages() {
+    try {
+      const res = await fetch(API, { method: "GET" });
+      if (!res.ok) throw res;
+      wages = await res.json();
+      resultMensaje = "Lista actualizada correctamente.";
+      mensajeColor = "green";
+    } catch (err) {
+      resultMensaje = "Error al obtener los datos.";
+      mensajeColor = "red";
     }
+  }
 
-    // ----------------------------
-    // CREAR
-    async function createWage() {
-        message = "";
-        error = "";
-
-        try {
-            const res = await fetch(API, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    country,
-                    date: Number(date),
-                    national_currency_minimum_wage: Number(national_currency_minimum_wage),
-                    nmw_on_dollar: Number(nmw_on_dollar),
-                    percentage_change: Number(percentage_change)
-                })
-            });
-
-            if (!res.ok) throw res;
-
-            message = `Se ha creado correctamente el registro de ${country} (${date})`;
-            clearForm();
-            loadData();
-        } catch (err) {
-            handleError(err, "No se pudo crear el registro");
-        }
+  async function deleteWage(country, date) {
+    try {
+      const res = await fetch(`${API}/${country}/${date}`, { method: "DELETE" });
+      if (res.status === 204) {
+        resultMensaje = `Recurso de ${country} (${date}) eliminado correctamente.`;
+        mensajeColor = "green";
+        await getWages();
+      } else if (res.status === 404) {
+        resultMensaje = `No existe un recurso de ${country} para el año ${date}.`;
+        mensajeColor = "red";
+      } else {
+        resultMensaje = "Error al eliminar el recurso.";
+        mensajeColor = "red";
+      }
+    } catch {
+      resultMensaje = "Error al conectar con el servidor.";
+      mensajeColor = "red";
     }
+  }
 
-    // ----------------------------
-    // BORRAR TODOS
-    async function deleteAll() {
-        if (!confirm("¿Seguro que quieres borrar todos los datos?")) return;
+  async function insertWage() {
+  // Verificar que todos los campos estén completos
+  if (!newCountry || !newDate || !newNationalWage || !newDollarWage || !newPercentage) {
+    resultMensaje = "Debe completar todos los campos: país, año, salario nacional, salario USD y % de cambio.";
+    mensajeColor = "red";
+    return;
+  }
 
-        message = "";
-        error = "";
+  let newWage = {
+    country: newCountry,
+    date: parseInt(newDate),
+    national_currency_minimum_wage: parseFloat(newNationalWage),
+    nmw_on_dollar: parseFloat(newDollarWage),
+    percentage_change: parseFloat(newPercentage)
+  };
 
-        try {
-            const res = await fetch(API, { method: "DELETE" });
-            if (!res.ok) throw res;
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newWage)
+    });
 
-            message = "Todos los datos han sido eliminados";
-            wages = [];
-        } catch (err) {
-            handleError(err, "No se pudieron borrar los datos");
-        }
+    if (res.status === 201) {
+      resultMensaje = `Recurso de ${newCountry} (${newDate}) creado correctamente.`;
+      mensajeColor = "green";
+      await getWages();
+      // Limpiar campos del formulario
+      newCountry = newDate = newNationalWage = newDollarWage = newPercentage = "";
+    } else if (res.status === 409) {
+      resultMensaje = `El recurso de ${newCountry} para el año ${newDate} ya existe.`;
+      mensajeColor = "red";
+    } else {
+      resultMensaje = "Error desconocido al crear el recurso.";
+      mensajeColor = "red";
     }
+  } catch {
+    resultMensaje = "Error al conectar con el servidor.";
+    mensajeColor = "red";
+  }
+}
 
-    // ----------------------------
-    // BORRAR UNO
-    async function deleteOne(c, d) {
-        if (!confirm(`¿Eliminar ${c} (${d})?`)) return;
 
-        message = "";
-        error = "";
-
-        try {
-            const res = await fetch(`${API}/${c}/${d}`, {
-                method: "DELETE"
-            });
-
-            if (!res.ok) throw res;
-
-            message = `Se eliminó el registro de ${c} (${d})`;
-            loadData();
-        } catch (err) {
-            if (err.status === 404) {
-                error = `No existe un registro para ${c} en el año ${d}`;
-            } else {
-                handleError(err, "No se pudo eliminar el registro");
-            }
-        }
+  // Load initial data
+  async function loadInitialData() {
+    try {
+      const res = await fetch(`${API}/loadInitialData`);
+      if (res.status === 201) {
+        resultMensaje = "Datos iniciales cargados correctamente.";
+        mensajeColor = "green";
+        await getWages();
+      } else if (res.status === 409) {
+        resultMensaje = "Los datos iniciales ya estaban cargados.";
+        mensajeColor = "orange";
+      } else {
+        resultMensaje = "Error al cargar los datos iniciales.";
+        mensajeColor = "red";
+      }
+    } catch {
+      resultMensaje = "Error al conectar con el servidor.";
+      mensajeColor = "red";
     }
+  }
 
-    // ----------------------------
-    function clearForm() {
-        country = "";
-        date = "";
-        national_currency_minimum_wage = "";
-        nmw_on_dollar = "";
-        percentage_change = "";
+  // Borrar todos los recursos
+  async function deleteAll() {
+    try {
+      const res = await fetch(API, { method: "DELETE" });
+      if (res.status === 204) {
+        resultMensaje = "Todos los recursos fueron eliminados correctamente.";
+        mensajeColor = "green";
+        wages = [];
+      } else {
+        resultMensaje = "Error al eliminar todos los recursos.";
+        mensajeColor = "red";
+      }
+    } catch {
+      resultMensaje = "Error al conectar con el servidor.";
+      mensajeColor = "red";
     }
+  }
 
-    // ----------------------------
-    async function handleError(res, defaultMsg) {
-        if (res.status === 400) {
-            error = "Faltan datos obligatorios";
-        } else if (res.status === 409) {
-            error = "Ese registro ya existe";
-        } else if (res.status === 404) {
-            error = "El recurso no existe";
-        } else {
-            error = defaultMsg;
-        }
-    }
+  onMount(() => {
+    getWages();
+  });
+
 </script>
 
-<style>
-    body {
-        font-family: Arial;
-    }
-    .container {
-        max-width: 900px;
-        margin: auto;
-    }
-    input {
-        margin: 5px;
-        padding: 5px;
-    }
-    button {
-        margin: 5px;
-        padding: 8px;
-        cursor: pointer;
-    }
-    .msg {
-        color: green;
-    }
-    .err {
-        color: red;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    td, th {
-        border: 1px solid #ccc;
-        padding: 8px;
-    }
-</style>
+<h2>Salarios Mínimos Interprofesionales</h2>
 
-<div class="container">
-    <h1>Salario Mínimo Interprofesional</h1>
+{#if resultMensaje}
+  <p style="color: {mensajeColor};">{resultMensaje}</p>
+{/if}
 
-    <!-- MENSAJES -->
-    {#if message}
-        <p class="msg">{message}</p>
-    {/if}
-    {#if error}
-        <p class="err">{error}</p>
-    {/if}
-
-    <!-- FORMULARIO -->
-    <h2>Crear nuevo registro</h2>
-    <input placeholder="País" bind:value={country} />
-    <input placeholder="Año" bind:value={date} type="number" />
-    <input placeholder="Salario (moneda local)" bind:value={national_currency_minimum_wage} type="number" />
-    <input placeholder="Salario en dólares" bind:value={nmw_on_dollar} type="number" />
-    <input placeholder="% cambio" bind:value={percentage_change} type="number" />
-
-    <br />
-    <button on:click={createWage}>Crear registro</button>
-
-    <!-- ACCIONES -->
-    <h2>Acciones</h2>
-    <button on:click={loadData}>Cargar datos</button>
-    <button on:click={deleteAll}>Borrar todos</button>
-
-    <!-- TABLA -->
-    <h2>Listado</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>País</th>
-                <th>Año</th>
-                <th>Salario</th>
-                <th>$</th>
-                <th>%</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            {#each wages as w}
-                <tr>
-                    <td>{w.country}</td>
-                    <td>{w.date}</td>
-                    <td>{w.national_currency_minimum_wage}</td>
-                    <td>{w.nmw_on_dollar}</td>
-                    <td>{w.percentage_change}</td>
-                    <td>
-                        <button on:click={() => deleteOne(w.country, w.date)}>
-                            Eliminar
-                        </button>
-                    </td>
-                </tr>
-            {/each}
-        </tbody>
-    </table>
+<div class="mb-3">
+  <Button color="info" onclick={loadInitialData}>Cargar Datos Iniciales</Button>
+  <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
 </div>
+
+<Table>
+  <thead>
+    <tr>
+      <th>País</th>
+      <th>Año</th>
+      <th>Salario (moneda nacional)</th>
+      <th>Salario (USD)</th>
+      <th>% Cambio</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Fila para crear nuevo recurso -->
+    <tr>
+      <td>
+        <label for="newCountry" class="visually-hidden">País</label>
+        <input id="newCountry" bind:value={newCountry} placeholder="País"/>
+      </td>
+      <td>
+        <label for="newDate" class="visually-hidden">Año</label>
+        <input id="newDate" type="number" bind:value={newDate} placeholder="Año"/>
+      </td>
+      <td>
+        <label for="newNationalWage" class="visually-hidden">Salario nacional</label>
+        <input id="newNationalWage" type="number" step="0.01" bind:value={newNationalWage} placeholder="Salario"/>
+      </td>
+      <td>
+        <label for="newDollarWage" class="visually-hidden">Salario USD</label>
+        <input id="newDollarWage" type="number" step="0.01" bind:value={newDollarWage} placeholder="USD"/>
+      </td>
+      <td>
+        <label for="newPercentage" class="visually-hidden">% Cambio</label>
+        <input id="newPercentage" type="number" step="0.01" bind:value={newPercentage} placeholder="%"/>
+      </td>
+      <td><Button color="primary" onclick={insertWage}>Crear</Button></td>
+    </tr>
+
+    <!-- Fila para cada recurso existente -->
+    {#each wages as wage (wage.country + wage.date)}
+      <tr>
+        <td>{wage.country}</td>
+        <td>{wage.date}</td>
+        <td>{wage.national_currency_minimum_wage}</td>
+        <td>{wage.nmw_on_dollar}</td>
+        <td>{wage.percentage_change}</td>
+        <td>
+          <Button color="danger" onclick={() => deleteWage(wage.country, wage.date)}>Borrar</Button>
+        </td>
+      </tr>
+    {/each}
+  </tbody>
+</Table>
