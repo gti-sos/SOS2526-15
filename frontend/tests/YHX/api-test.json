@@ -1,158 +1,331 @@
 {
   "info": {
-    "_postman_id": "35e64b61-e9eb-4dcc-9449-b9da3f8bee2c",
-    "name": "YHX",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "359472",
-    "_collection_link": "https://go.postman.co/collection/359472-35e64b61-e9eb-4dcc-9449-b9da3f8bee2c?source=collection_link"
+    "name": "Tests YHX Population Densities",
+    "description": "Colección de pruebas idempotentes para API REST",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "GET /contacts - 200",
+      "name": "1. DELETE general (Limpia DB)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
+    },
+    {
+      "name": "2. GET loadInitialData-201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Devuelve un array de tamaño 10\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "    pm.expect(jsonData.length).to.eql(10);",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/v1/contacts",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "contacts"
-          ]
-        }
-      },
-      "response": []
+        "url": "{{base_url}}/api/v1/population-densities/loadInitialData"
+      }
     },
     {
-      "name": "DELETE /contacts/paul - 404",
+      "name": "3. GET loadInitialData-409",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 404\", function () {\r",
-              "    pm.response.to.have.status(404);\r",
+              "pm.test(\"Status code is 409\", function () {",
+              "    pm.response.to.have.status(409);",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/v1/contacts/paul",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "contacts",
-            "paul"
-          ]
-        }
-      },
-      "response": []
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/population-densities/loadInitialData"
+      }
     },
     {
-      "name": "POST /contacts - paul - 201",
+      "name": "4. GET general-200",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 201\", function () {\r",
-              "    pm.response.to.have.status(201);\r",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Devuelve un array\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
+    },
+    {
+      "name": "5. POST-201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"El país creado es francia\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.country).to.eql(\"francia\");",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"name\": \"paul\",\r\n    \"phone\": 123456\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 105,\"population\": 68000000,\"percentage_change\": 0.3}"
         },
-        "url": {
-          "raw": "{{base_url}}/api/v1/contacts",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "contacts"
-          ]
-        }
-      },
-      "response": []
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
     },
     {
-      "name": "DELETE /contacts/paul - 200",
+      "name": "6. POST-409 (Duplicado)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"Status code is 200\", function () {\r",
-              "    pm.response.to.have.status(200);\r",
+              "pm.test(\"Status code is 409\", function () {",
+              "    pm.response.to.have.status(409);",
               "});"
             ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 105,\"population\": 68000000,\"percentage_change\": 0.3}"
+        },
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
+    },
+    {
+      "name": "7. POST-400 (Faltan campos)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"country\": \"francia\"}"
+        },
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
+    },
+    {
+      "name": "8. GET específico-200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Devuelve un objeto\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('object');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+      }
+    },
+    {
+      "name": "9. PUT específico-200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 110,\"population\": 68000000,\"percentage_change\": 0.5}"
+        },
+        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+      }
+    },
+    {
+      "name": "10. PUT específico-400 (Mismatch URL y Body)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"country\": \"italia\",\"year\": 2024,\"density\": 110,\"population\": 68000000,\"percentage_change\": 0.5}"
+        },
+        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+      }
+    },
+    {
+      "name": "11. PUT general-405",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 405\", function () {",
+              "    pm.response.to.have.status(405);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "url": "{{base_url}}/api/v1/population-densities"
+      }
+    },
+    {
+      "name": "12. GET específico-404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/v1/population-densities/narnia/2024"
+      }
+    },
+    {
+      "name": "13. DELETE específico-204 (Limpia el test)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
       ],
       "request": {
         "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/api/v1/contacts/paul",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "contacts",
-            "paul"
-          ]
+        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+      }
+    },
+    {
+      "name": "14. DELETE específico-404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
         }
-      },
-      "response": []
+      ],
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/api/v1/population-densities/narnia/2024"
+      }
     }
   ]
 }

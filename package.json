@@ -7,10 +7,10 @@
   "scripts": {
     "start": "node index.js",
     "test-JAM": "newman run frontend/tests/JAM/api-test.json -e frontend/tests/JAM/local.json",
-    "test-JAM-server": "start-server-and-test start http://localhost:8080 test-JAM",
-    "test-SMB": "npx newman run frontend/tests/SMB/api-test.json -e frontend/tests/SMB/api-test-env-local.json",
-    "test-SMB-server": "start-server-and-test start http://localhost:8080 test-SMB",
-    "test": "npm run test-SMB-server && npm run test-JAM"
+    "test-SMB": "newman run frontend/tests/SMB/api-test.json -e frontend/tests/SMB/api-test-env-local.json",
+    "test-YHX": "newman run frontend/tests/YHX/api-test.json -e frontend/tests/YHX/api-test-env-local.json",
+    "test-all": "npm run test-JAM && npm run test-SMB && npm run test-YHX",
+    "test": "start-server-and-test start http://localhost:8080 test-all"
   },
   "repository": {
     "type": "git",

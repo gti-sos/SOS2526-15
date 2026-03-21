@@ -4,7 +4,7 @@ util.isRegExp = util.types.isRegExp;
 util.isError = util.types.isNativeError;
 import cors from 'cors';
 import express from 'express';
-import {handler} from './frontend/build/handler.js';
+//import {handler} from './frontend/build/handler.js';
 
 const app = express();
 app.use(cors());
@@ -24,7 +24,7 @@ loadBackendSMB(app);
 loadBackendYHX(app);
 loadBackendJAM(app);
 loadBackendJAMv2(app);
-app.use(handler);
+//app.use(handler);
 
 app.listen(port, () => {
     console.log(`Server ready at port ${port}`);
