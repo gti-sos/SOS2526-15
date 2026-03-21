@@ -7,9 +7,9 @@
   "scripts": {
     "start": "node index.js",
     "test-JAM": "npx newman run \"tests/JAM/SOS2526-15 JAM - Happiness Indices.postman_collection.json\" -e \"tests/JAM/Local.postman_environment.json\"",
-    "test-SMB": "npx newman run tests/SMB/api-test.json -e tests/SMB/api-test-env-render.json",
-    "test-online": "start-server-and-test start http://localhost:8080 test-api-online",
-    "test": "npm run test-JAM"
+    "test-SMB": "npx newman run frontend/tests/SMB/api-test.json -e frontend/tests/SMB/api-test-env-local.json",
+    "test-SMB-server": "start-server-and-test start http://localhost:8080 test-SMB",
+    "test": "npm run test-SMB-server && test-JAM"
   },
   "repository": {
     "type": "git",
