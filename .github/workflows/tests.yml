@@ -24,13 +24,8 @@ jobs:
 
       - name: Start Server and Run Tests
         run: |
-          # 1. Arrancamos el servidor en segundo plano
           node index.js &
-          
-          # 2. Esperamos un máximo de 20 segundos a que el puerto de tu API esté listo.
-          # (Si tu API no devuelve nada en la raíz "/", cámbialo por una ruta que sepas que funciona, como la de tu API)
           npx wait-on -t 30000 http-get://localhost:8080/api/v1/happiness-indices http-get://localhost:8080/api/v1/population-densities http-get://localhost:8080/api/v1/minimum-interprofessional-wages
-          # 3. Lanzamos todas las pruebas
           npm test
 
 
