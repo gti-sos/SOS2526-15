@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "test-JAM": "newman run tests/JAM/api-test.json -e tests/JAM/Local.postman_environment.json",
+    "test-JAM": "newman run frontend/tests/JAM/api-test.json -e frontend/tests/JAM/local.postman_environment.json",
     "test-JAM-server": "start-server-and-test start http://localhost:8080 test-JAM",
     "test-SMB": "npx newman run frontend/tests/SMB/api-test.json -e frontend/tests/SMB/api-test-env-local.json",
     "test-SMB-server": "start-server-and-test start http://localhost:8080 test-SMB",
