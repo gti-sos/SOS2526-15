@@ -22,7 +22,7 @@
       ],
       "request": {
         "method": "DELETE",
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -47,7 +47,7 @@
       ],
       "request": {
         "method": "GET",
-        "url": "{{base_url}}/api/v1/population-densities/loadInitialData"
+        "url": "{{url}}/api/v1/population-densities/loadInitialData"
       }
     },
     {
@@ -67,7 +67,7 @@
       ],
       "request": {
         "method": "GET",
-        "url": "{{base_url}}/api/v1/population-densities/loadInitialData"
+        "url": "{{url}}/api/v1/population-densities/loadInitialData"
       }
     },
     {
@@ -91,7 +91,7 @@
       ],
       "request": {
         "method": "GET",
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -120,7 +120,7 @@
           "mode": "raw",
           "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 105,\"population\": 68000000,\"percentage_change\": 0.3}"
         },
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -145,7 +145,7 @@
           "mode": "raw",
           "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 105,\"population\": 68000000,\"percentage_change\": 0.3}"
         },
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -170,7 +170,7 @@
           "mode": "raw",
           "raw": "{\"country\": \"francia\"}"
         },
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -194,7 +194,7 @@
       ],
       "request": {
         "method": "GET",
-        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+        "url": "{{url}}/api/v1/population-densities/francia/2024"
       }
     },
     {
@@ -219,7 +219,7 @@
           "mode": "raw",
           "raw": "{\"country\": \"francia\",\"year\": 2024,\"density\": 110,\"population\": 68000000,\"percentage_change\": 0.5}"
         },
-        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+        "url": "{{url}}/api/v1/population-densities/francia/2024"
       }
     },
     {
@@ -244,7 +244,7 @@
           "mode": "raw",
           "raw": "{\"country\": \"italia\",\"year\": 2024,\"density\": 110,\"population\": 68000000,\"percentage_change\": 0.5}"
         },
-        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+        "url": "{{url}}/api/v1/population-densities/francia/2024"
       }
     },
     {
@@ -264,7 +264,7 @@
       ],
       "request": {
         "method": "PUT",
-        "url": "{{base_url}}/api/v1/population-densities"
+        "url": "{{url}}/api/v1/population-densities"
       }
     },
     {
@@ -284,7 +284,7 @@
       ],
       "request": {
         "method": "GET",
-        "url": "{{base_url}}/api/v1/population-densities/narnia/2024"
+        "url": "{{url}}/api/v1/population-densities/narnia/2024"
       }
     },
     {
@@ -304,7 +304,7 @@
       ],
       "request": {
         "method": "DELETE",
-        "url": "{{base_url}}/api/v1/population-densities/francia/2024"
+        "url": "{{url}}/api/v1/population-densities/francia/2024"
       }
     },
     {
@@ -324,7 +324,7 @@
       ],
       "request": {
         "method": "DELETE",
-        "url": "{{base_url}}/api/v1/population-densities/narnia/2024"
+        "url": "{{url}}/api/v1/population-densities/narnia/2024"
       }
     }
   ]
