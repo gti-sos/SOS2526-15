@@ -22,11 +22,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
       - name: Start Server and Run Tests
         run: |
           node index.js &
           npx wait-on -t 30000 http-get://localhost:8080/api/v1/happiness-indices http-get://localhost:8080/api/v1/population-densities http-get://localhost:8080/api/v1/minimum-interprofessional-wages
           npm test
-
-
-       
