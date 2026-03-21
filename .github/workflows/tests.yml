@@ -1,0 +1,32 @@
+name: SOS2526 Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start Server and Run Tests
+        run: |
+          node index.js &
+          npx wait-on -t 30000 http-get://localhost:8080/api/v1/happiness-indices http-get://localhost:8080/api/v1/population-densities http-get://localhost:8080/api/v1/minimum-interprofessional-wages
+          npm test
+
+
+       

@@ -208,29 +208,35 @@ export function loadBackendSMB(app){
     // GET SMB
    app.get(API_URL_SMB, (req, res) => {
 
-        let query = {};
+    let query = {};
 
-        if (req.query.country) {
-            query.country = req.query.country;
-        }
+    if (req.query.country) {
+        query.country = req.query.country;
+    }
 
-        if (req.query.date) {
-            query.date = parseInt(req.query.date);
-        }
+    if (req.query.date) {
+        query.date = parseInt(req.query.date);
+    }
 
-        if (req.query.national_currency_minimum_wage) {
-            query.national_currency_minimum_wage = parseFloat(req.query.national_currency_minimum_wage);
-        }
+    if (req.query.national_currency_minimum_wage) {
+        query.national_currency_minimum_wage = parseFloat(req.query.national_currency_minimum_wage);
+    }
 
-        if (req.query.nmw_on_dollar) {
-            query.nmw_on_dollar = parseFloat(req.query.nmw_on_dollar);
-        }
+    if (req.query.nmw_on_dollar) {
+        query.nmw_on_dollar = parseFloat(req.query.nmw_on_dollar);
+    }
 
-        if (req.query.percentage_change) {
-            query.percentage_change = parseFloat(req.query.percentage_change);
-        }
+    if (req.query.percentage_change) {
+        query.percentage_change = parseFloat(req.query.percentage_change);
+    }
 
-        db.find(query, (err, docs) => {
+    let limit = parseInt(req.query.limit) || 0;
+    let offset = parseInt(req.query.offset) || 0;
+
+    db.find(query)
+        .skip(offset)
+        .limit(limit)
+        .exec((err, docs) => {
 
             if (err) {
                 return res.sendStatus(500);
@@ -239,10 +245,8 @@ export function loadBackendSMB(app){
             docs.forEach(d => delete d._id);
 
             res.status(200).json(docs);
-
         });
-
-    });
+});
 
     app.get(`${API_URL_SMB}/:country`, (req, res) => {
 
