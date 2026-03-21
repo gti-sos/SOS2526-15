@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
 
     // 1. CONFIGURACIÓN: URL de tu API (Usamos la v2 como pide la rúbrica)
-    let url = "http://localhost:8080/api/v2/happiness-indices"; 
+    let url = "/api/v2/happiness-indices"; 
 
     // 2. ESTADO: Variables para guardar datos y mensajes
     let happinessIndices = [];

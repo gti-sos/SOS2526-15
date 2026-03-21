@@ -12,6 +12,7 @@ const port = process.env.PORT || 8080;
 import {loadBackendSMB} from './src/routes/SMB.js';
 import {loadBackendYHX} from './src/routes/YHX.js';
 import {loadBackendJAM} from './src/routes/JAM.js';
+import { loadBackendJAMv2 } from "./src/routes/JAMv2.js";
 //import {loadBackendJAM} from './src/routes/JAMv2.js';
 
 app.use('/', express.static('public'));
@@ -22,6 +23,7 @@ app.use(express.json());
 loadBackendSMB(app);
 loadBackendYHX(app);
 loadBackendJAM(app);
+loadBackendJAMv2(app);
 //app.use(handler);
 
 app.listen(port, () => {
