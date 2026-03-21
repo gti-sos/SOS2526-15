@@ -4,7 +4,7 @@
 	"values": [
 		{
 			"key": "url",
-			"value": "http://localhost:8080",
+			"value": "https://sos2526-15.onrender.com",
 			"type": "default",
 			"enabled": true
 		}
