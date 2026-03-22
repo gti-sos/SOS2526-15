@@ -1,4 +1,4 @@
-import Datastore from '@seald-io/nedb';
+import Datastore from 'nedb';
 
 // Inicializamos la base de datos correctamente
 const db = new Datastore({ filename: './population-densities.db', autoload: true });
@@ -19,7 +19,7 @@ export function loadBackendYHX(app) {
         { country: "ucrania", year: 2022, density: 68, population: 41048766, percentage_change: 0.12 }
     ];
 
-    const DOCUMENTATION = "https://documenter.getpostman.com/view/52392777/2sBXigMtFk";
+    const DOCUMENTATION = "https://documenter.getpostman.com/view/52392777/2sBXijJXGk";
 
     // ================= DOCUMENTACIÓN Y CARGA INICIAL =================
     app.get(`${API_URL}/docs`, (req, res) => {
