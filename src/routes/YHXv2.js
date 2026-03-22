@@ -1,4 +1,4 @@
-import Datastore from 'nedb';
+import Datastore from '@seald-io/nedb';
 
 // Inicializamos la base de datos correctamente
 const db = new Datastore({ filename: './population-densities.db', autoload: true });
