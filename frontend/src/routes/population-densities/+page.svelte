@@ -3,11 +3,11 @@
   import { onMount } from 'svelte';
   import { Button, Table } from '@sveltestrap/sveltestrap';
 
-  // Cambiamos la URL a tu API
+  // Ruta de tu API
   let API = '/api/v1/population-densities';
   if (dev) API = "http://localhost:8080" + API;
 
-  // Variables de estado (Runes de Svelte 5)
+  // Variables de estado
   // @ts-ignore
   let densities = $state([]);
   // @ts-ignore
@@ -39,6 +39,24 @@
       mensajeColor = "green";
     } catch (err) {
       resultMensaje = "Error al obtener los datos.";
+      mensajeColor = "red";
+    }
+  }
+
+  // v) Cargar datos iniciales
+  async function loadInitialData() {
+    try {
+      const res = await fetch(`${API}/loadInitialData`, { method: "GET" });
+      if (res.ok) {
+        resultMensaje = "Datos iniciales cargados con éxito.";
+        mensajeColor = "green";
+        getDensities(); // Recargamos la tabla para ver los datos nuevos
+      } else {
+        resultMensaje = "Error al cargar los datos iniciales.";
+        mensajeColor = "red";
+      }
+    } catch (err) {
+      resultMensaje = "Error de conexión al cargar datos.";
       mensajeColor = "red";
     }
   }
@@ -127,11 +145,12 @@
     <p style="color: {mensajeColor}; font-weight: bold;">{resultMensaje}</p>
   {/if}
 
-  <div class="mb-3">
+  <div class="mb-3 d-flex gap-2">
+    <Button color="primary" onclick={loadInitialData}>Cargar Datos Iniciales</Button>
     <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
   </div>
 
-  <Table striped bordered>
+  <Table striped bordered responsive>
     <thead>
       <tr>
         <th>País</th>
