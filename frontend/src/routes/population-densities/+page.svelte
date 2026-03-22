@@ -33,12 +33,15 @@
   async function getDensities() {
     try {
       const res = await fetch(API, { method: "GET" });
-      if (!res.ok) throw res;
-      densities = await res.json();
-      resultMensaje = "Lista actualizada correctamente.";
-      mensajeColor = "green";
+      if (res.ok) {
+        densities = await res.json();
+        // Ocultamos el mensaje de éxito al simplemente recargar la lista para no ser pesados
+      } else {
+        resultMensaje = "Error al obtener los datos del servidor.";
+        mensajeColor = "red";
+      }
     } catch (err) {
-      resultMensaje = "Error al obtener los datos.";
+      resultMensaje = "Error de conexión con la API.";
       mensajeColor = "red";
     }
   }
@@ -47,12 +50,12 @@
   async function loadInitialData() {
     try {
       const res = await fetch(`${API}/loadInitialData`, { method: "GET" });
-      if (res.ok) {
+      if (res.status === 201 || res.ok) {
         resultMensaje = "Datos iniciales cargados con éxito.";
         mensajeColor = "green";
-        getDensities(); // Recargamos la tabla para ver los datos nuevos
+        getDensities();
       } else {
-        resultMensaje = "Error al cargar los datos iniciales.";
+        resultMensaje = "Ocurrió un error al intentar cargar los datos iniciales.";
         mensajeColor = "red";
       }
     } catch (err) {
@@ -61,7 +64,7 @@
     }
   }
 
-  // i) Crear recurso
+  // i) Crear recurso (Añadido control de errores 400 y 409)
   async function insertDensity() {
     const newEntry = {
       country: newCountry,
@@ -78,14 +81,19 @@
         body: JSON.stringify(newEntry)
       });
 
-      if (res.ok) {
-        resultMensaje = "Recurso creado con éxito.";
+      if (res.status === 201) {
+        resultMensaje = `El registro de ${newCountry} (${newYear}) se ha creado con éxito.`;
         mensajeColor = "green";
-        // Limpiamos los campos
         newCountry = ""; newYear = ""; newDensity = ""; newPopulation = ""; newPercentageChange = "";
-        getDensities(); // Recargamos la tabla
+        getDensities();
+      } else if (res.status === 409) {
+        resultMensaje = `Conflicto: Ya existe un registro para ${newCountry} en el año ${newYear}.`;
+        mensajeColor = "orange";
+      } else if (res.status === 400) {
+        resultMensaje = "Error: Faltan campos por rellenar o los datos no son válidos.";
+        mensajeColor = "red";
       } else {
-        resultMensaje = "Error al crear (¿Quizás ya existe o faltan campos?).";
+        resultMensaje = "Error inesperado al crear el recurso.";
         mensajeColor = "red";
       }
     } catch (err) {
@@ -94,14 +102,17 @@
     }
   }
 
-  // iv) Borrar un recurso concreto
+  // iv) Borrar un recurso concreto (Añadido control de error 404)
   async function deleteDensity(country, year) {
     try {
       const res = await fetch(`${API}/${country}/${year}`, { method: "DELETE" });
-      if (res.ok) {
-        resultMensaje = `Recurso ${country} - ${year} borrado.`;
+      if (res.status === 200 || res.status === 204) {
+        resultMensaje = `El registro de ${country} en ${year} ha sido borrado correctamente.`;
         mensajeColor = "green";
-        getDensities(); // Recargamos la tabla
+        getDensities();
+      } else if (res.status === 404) {
+        resultMensaje = `No existe ningún registro de ${country} en el año ${year} para borrar.`;
+        mensajeColor = "orange";
       } else {
         resultMensaje = "Error al borrar el recurso.";
         mensajeColor = "red";
@@ -117,12 +128,12 @@
     if (confirm("¿Estás seguro de que quieres borrar todos los datos?")) {
       try {
         const res = await fetch(API, { method: "DELETE" });
-        if (res.ok) {
-          resultMensaje = "Todos los recursos han sido borrados.";
+        if (res.status === 200 || res.status === 204) {
+          resultMensaje = "Todos los registros han sido borrados de la base de datos.";
           mensajeColor = "green";
-          getDensities(); // Recargamos la tabla (quedará vacía)
+          densities = []; // Vaciamos la tabla directamente
         } else {
-          resultMensaje = "Error al borrar todo.";
+          resultMensaje = "Error al intentar borrar todos los datos.";
           mensajeColor = "red";
         }
       } catch (err) {
