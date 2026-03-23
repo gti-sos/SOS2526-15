@@ -47,15 +47,35 @@ export function loadBackendJAMv2(app) {
     });
 
     // 3. LISTAR TODOS (GET)
+    // Reemplaza el GET de la colección por:
     app.get(API_URL_JAM_V2, (req, res) => {
-        db.find({}, (err, data) => {
+        let query = {};
+        if (req.query.country) query.country = req.query.country;
+        if (req.query.year) query.year = parseInt(req.query.year);
+        if (req.query.happiness_score) query.happiness_score = parseFloat(req.query.happiness_score);
+        if (req.query.gdp_per_capita) query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
+        if (req.query.social_support) query.social_support = parseFloat(req.query.social_support);
+
+        let limit = parseInt(req.query.limit) || 0;
+        let offset = parseInt(req.query.offset) || 0;
+
+        db.find(query).skip(offset).limit(limit).exec((err, data) => {
+            if (err) return res.status(500).send("Error interno");
             res.json(data.map(d => { delete d._id; return d; }));
         });
     });
-
     // 4. CREAR UNO NUEVO (POST)
     app.post(API_URL_JAM_V2, (req, res) => {
         const newData = req.body;
+            // Validación de campos obligatorios
+    if (!newData || !newData.country || !newData.year || 
+        newData.happiness_score === undefined || 
+        newData.gdp_per_capita === undefined || 
+        newData.social_support === undefined) {
+        return res.status(400).json({ message: "Faltan campos obligatorios" });
+    }
+    newData.year = parseInt(newData.year);
+    delete newData._id;
         db.find({ country: newData.country, year: newData.year }, (err, docs) => {
             if (docs.length > 0) return res.sendStatus(409); 
             db.insert(newData, (err, saved) => {

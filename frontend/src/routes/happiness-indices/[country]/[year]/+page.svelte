@@ -1,10 +1,11 @@
 <script>
     import { onMount } from 'svelte';
     import { page } from '$app/state'; 
-
+    import { dev } from '$app/environment';
     const country = page.params.country;
     const year = page.params.year;
     let url = `/api/v2/happiness-indices/${country}/${year}`;
+    if (dev) url = `http://localhost:8080/api/v2/happiness-indices/${country}/${year}`;
     
     let updatedScore = "";
     let updatedGdp = "";
