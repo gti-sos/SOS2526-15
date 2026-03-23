@@ -6,6 +6,7 @@ export function loadBackendJAMv2(app) {
 
     // 1. CARGAR DATOS INICIALES (Tus datos reales)
     app.get(`${API_URL_JAM_V2}/loadInitialData`, (req, res) => {
+        // ... (todo tu código de loadInitialData tal cual lo tienes) ...
         db.find({}, (err, docs) => {
             if (docs.length === 0) {
                 const initialData = [
@@ -30,7 +31,7 @@ export function loadBackendJAMv2(app) {
                     { country: "japan", year: 2023, happiness_score: 6.129, gdp_per_capita: 1.838, social_support: 1.373 },
                     { country: "south_africa", year: 2023, happiness_score: 5.275, gdp_per_capita: 1.417, social_support: 1.221 },
                     { country: "finland", year: 2022, happiness_score: 7.803, gdp_per_capita: 1.887, social_support: 1.583 }
-    ];
+                ];
                 db.insert(initialData, (err, saved) => {
                     res.status(201).json(saved.map(d => { delete d._id; return d; }));
                 });
@@ -40,21 +41,23 @@ export function loadBackendJAMv2(app) {
         });
     });
 
-    // 2. LISTAR TODOS (GET)
+    // 2. REDIRECCIÓN A LA DOCUMENTACIÓN DE POSTMAN (¡Movido aquí arriba!)
+    app.get(`${API_URL_JAM_V2}/docs`, (req, res) => {
+        res.redirect("https://documenter.getpostman.com/view/52395798/2sBXijJrgQ");
+    });
+
+    // 3. LISTAR TODOS (GET)
     app.get(API_URL_JAM_V2, (req, res) => {
         db.find({}, (err, data) => {
             res.json(data.map(d => { delete d._id; return d; }));
         });
     });
 
-    // 3. CREAR UNO NUEVO (POST) - ¡Con control de duplicados!
+    // 4. CREAR UNO NUEVO (POST)
     app.post(API_URL_JAM_V2, (req, res) => {
         const newData = req.body;
-        // Comprobamos si ya existe ese país en ese año
         db.find({ country: newData.country, year: newData.year }, (err, docs) => {
-            if (docs.length > 0) {
-                return res.sendStatus(409); // 409 Conflict: Ya existe
-            }
+            if (docs.length > 0) return res.sendStatus(409); 
             db.insert(newData, (err, saved) => {
                 delete saved._id;
                 res.status(201).json(saved);
@@ -62,14 +65,14 @@ export function loadBackendJAMv2(app) {
         });
     });
 
-    // 4. BORRAR TODOS (DELETE GLOBAL)
+    // 5. BORRAR TODOS (DELETE GLOBAL)
     app.delete(API_URL_JAM_V2, (req, res) => {
         db.remove({}, { multi: true }, (err, numRemoved) => {
             res.sendStatus(204);
         });
     });
 
-    // 5. BUSCAR UNO CONCRETO (GET)
+    // 6. BUSCAR UNO CONCRETO (GET)
     app.get(`${API_URL_JAM_V2}/:country/:year`, (req, res) => {
         db.findOne({ country: req.params.country, year: parseInt(req.params.year) }, (err, item) => {
             if (item) { delete item._id; res.json(item); }
@@ -77,7 +80,7 @@ export function loadBackendJAMv2(app) {
         });
     });
 
-    // 6. ACTUALIZAR UNO (PUT)
+    // 7. ACTUALIZAR UNO (PUT)
     app.put(`${API_URL_JAM_V2}/:country/:year`, (req, res) => {
         db.update({ country: req.params.country, year: parseInt(req.params.year) }, req.body, {}, (err, num) => {
             if (num === 1) res.status(200).json(req.body);
@@ -85,15 +88,11 @@ export function loadBackendJAMv2(app) {
         });
     });
 
-    // 7. BORRAR UNO (DELETE INDIVIDUAL)
+    // 8. BORRAR UNO (DELETE INDIVIDUAL)
     app.delete(`${API_URL_JAM_V2}/:country/:year`, (req, res) => {
         db.remove({ country: req.params.country, year: parseInt(req.params.year) }, {}, (err, num) => {
             if (num === 1) res.sendStatus(204);
             else res.sendStatus(404);
         });
-    });
-    // 8. REDIRECCIÓN A LA DOCUMENTACIÓN DE POSTMAN
-    app.get(`${API_URL_JAM_V2}/docs`, (req, res) => {
-        res.redirect("https://documenter.getpostman.com/view/52395798/2sBXijJrgQ");
     });
 }
