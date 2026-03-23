@@ -92,4 +92,8 @@ export function loadBackendJAMv2(app) {
             else res.sendStatus(404);
         });
     });
+    // 8. REDIRECCIÓN A LA DOCUMENTACIÓN DE POSTMAN
+    app.get(`${API_URL_JAM_V2}/docs`, (req, res) => {
+        res.redirect("https://documenter.getpostman.com/view/52395798/2sBXijJrgQ");
+    });
 }
