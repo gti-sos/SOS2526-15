@@ -15,8 +15,13 @@ if (dev) url = 'http://localhost:8080' + url;
     let newGdp = $state("");
     let newSocial = $state("");
 
-    let searchFrom = $state("");
-    let searchTo = $state("");
+    let searchCountry = $state("");
+    let searchYear = $state("");
+    let searchScore = $state("");
+    let searchGdp = $state("");
+    let searchSocial = $state("");
+    let searchLimit = $state("");
+    let searchOffset = $state("");
 
     async function getIndices() {
         const res = await fetch(url);
@@ -81,31 +86,33 @@ if (dev) url = 'http://localhost:8080' + url;
 
     onMount(getIndices);
 async function buscarDatos() {
-        let queryParams = [];
-        if (searchFrom) queryParams.push(`from=${searchFrom}`);
-        if (searchTo) queryParams.push(`to=${searchTo}`);
+    let params = new URLSearchParams();
+    if (searchCountry) params.append('country', searchCountry);
+    if (searchYear)    params.append('year', searchYear);
+    if (searchScore)   params.append('happiness_score', searchScore);
+    if (searchGdp)     params.append('gdp_per_capita', searchGdp);
+    if (searchSocial)  params.append('social_support', searchSocial);
+    if (searchLimit)   params.append('limit', searchLimit);
+    if (searchOffset)  params.append('offset', searchOffset);
 
-        // Montamos la URL (ej: /api/v2/happiness-indices?from=2020&to=2023)
-        let query = queryParams.length > 0 ? "?" + queryParams.join("&") : "";
+    const query = params.toString() ? "?" + params.toString() : "";
+    const res = await fetch(url + query);
 
-        const res = await fetch(url + query);
-        
-        if (res.ok) {
-            happinessIndices = await res.json();
-            mostrarMensaje(`✅ Búsqueda completada. Se encontraron ${happinessIndices.length} resultados.`, "green");
-        } else if (res.status === 404) {
-            happinessIndices = []; // Vaciamos la tabla
-            mostrarMensaje("⚠️ No se han encontrado datos en ese rango de años.", "orange");
-        }
+    if (res.ok) {
+        happinessIndices = await res.json();
+        mostrarMensaje(`✅ ${happinessIndices.length} resultados encontrados.`, "green");
+    } else {
+        happinessIndices = [];
+        mostrarMensaje("⚠️ No se encontraron datos.", "orange");
     }
+}
 
     // Esta función va FUERA de buscarDatos()
-    function limpiarBusqueda() {
-        searchFrom = "";
-        searchTo = "";
-        getIndices();
-        mostrarMensaje("🧹 Búsqueda limpiada. Mostrando todos los datos.", "gray");
-    }
+function limpiarBusqueda() {
+    searchCountry = searchYear = searchScore = searchGdp = searchSocial = searchLimit = searchOffset = "";
+    getIndices();
+    mostrarMensaje("🧹 Búsqueda limpiada.", "gray");
+}
 </script>
 
 
@@ -129,14 +136,20 @@ async function buscarDatos() {
             <button class="btn-add" onclick={addIndex}>Añadir</button>
         </div>
     </section>
-    <section style="margin-bottom: 20px; padding: 10px; background-color: #f0f0f0;">
-            <h3>🔍 Buscar datos por año</h3>
-            <input type="number" placeholder="Desde el año..." bind:value={searchFrom} />
-            <input type="number" placeholder="Hasta el año..." bind:value={searchTo} />
-            
-            <button onclick={buscarDatos}>Buscar</button>
-            <button onclick={limpiarBusqueda}>Limpiar Búsqueda</button>
-        </section>
+<section style="margin-bottom: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+    <h3>🔍 Buscar datos</h3>
+    <div class="inputs">
+        <input type="text"   placeholder="País"             bind:value={searchCountry} />
+        <input type="number" placeholder="Año"              bind:value={searchYear} />
+        <input type="number" placeholder="Puntuación"       bind:value={searchScore}  step="0.001"/>
+        <input type="number" placeholder="PIB per cápita"   bind:value={searchGdp}    step="0.001"/>
+        <input type="number" placeholder="Soporte Social"   bind:value={searchSocial} step="0.001"/>
+        <input type="number" placeholder="Límite"           bind:value={searchLimit} />
+        <input type="number" placeholder="Offset"           bind:value={searchOffset} />
+        <button onclick={buscarDatos}>Buscar</button>
+        <button onclick={limpiarBusqueda}>Limpiar</button>
+    </div>
+</section>
     <table>
         <thead>
             <tr>
