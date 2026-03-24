@@ -135,7 +135,7 @@ async function buscarDatos() {
             <input type="number" placeholder="Hasta el año..." bind:value={searchTo} />
             
             <button onclick={buscarDatos}>Buscar</button>
-            <button onclick={() => { searchFrom = ""; searchTo = ""; getIndices(); }}>Limpiar Búsqueda</button>
+            <button onclick={limpiarBusqueda}>Limpiar Búsqueda</button>
         </section>
     <table>
         <thead>
