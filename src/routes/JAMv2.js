@@ -46,15 +46,21 @@ export function loadBackendJAMv2(app) {
         res.redirect("https://documenter.getpostman.com/view/52395798/2sBXijJrgQ");
     });
 
-    // 3. LISTAR TODOS (GET)
-    // Reemplaza el GET de la colección por:
+    // 3. LISTAR TODOS (GET) CON BÚSQUEDA AVANZADA
     app.get(API_URL_JAM_V2, (req, res) => {
         let query = {};
+        
+        // Búsqueda por país exacto
         if (req.query.country) query.country = req.query.country;
-        if (req.query.year) query.year = parseInt(req.query.year);
-        if (req.query.happiness_score) query.happiness_score = parseFloat(req.query.happiness_score);
-        if (req.query.gdp_per_capita) query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
-        if (req.query.social_support) query.social_support = parseFloat(req.query.social_support);
+        
+        // Búsqueda por rango de años (from / to) o año exacto
+        if (req.query.from || req.query.to) {
+            query.year = {};
+            if (req.query.from) query.year.$gte = parseInt(req.query.from); // Mayor o igual que 'from'
+            if (req.query.to) query.year.$lte = parseInt(req.query.to);     // Menor o igual que 'to'
+        } else if (req.query.year) {
+            query.year = parseInt(req.query.year);
+        }
 
         let limit = parseInt(req.query.limit) || 0;
         let offset = parseInt(req.query.offset) || 0;
