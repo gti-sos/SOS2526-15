@@ -1,5 +1,6 @@
 <script>
     import { onMount } from 'svelte';
+    import { dev } from '$app/environment';
     import Message from './Message.svelte';
     let url = "/api/v2/happiness-indices"; 
 if (dev) url = 'http://localhost:8080' + url;
