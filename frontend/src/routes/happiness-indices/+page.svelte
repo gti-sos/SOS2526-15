@@ -5,15 +5,15 @@
     let url = "/api/v2/happiness-indices"; 
 if (dev) url = 'http://localhost:8080' + url;
 
-    let happinessIndices = [];
-    let mensaje = "";
-    let mensajeColor = "gray";
+    let happinessIndices = $state([]);
+    let mensaje = $state("");
+    let mensajeColor = $state("gray");
 
-    let newCountry = "";
-    let newYear = "";
-    let newScore = "";
-    let newGdp = "";
-    let newSocial = "";
+    let newCountry = $state("");
+    let newYear = $state("");
+    let newScore = $state("");
+    let newGdp = $state("");
+    let newSocial = $state("");
 
     async function getIndices() {
         const res = await fetch(url);
@@ -93,7 +93,7 @@ if (dev) url = 'http://localhost:8080' + url;
         <div class="inputs">
             <input type="text" placeholder="País" bind:value={newCountry} />
             <input type="number" placeholder="Año" bind:value={newYear} />
-            <input type="number" placeholder="Puntuación" bind:value={newScore} step="0.001"/>
+            <input type="number" placeholder="Puntuación de Felicidad" bind:value={newScore} step="0.001"/>
             <input type="number" placeholder="PIB per cápita" bind:value={newGdp} step="0.001"/>
             <input type="number" placeholder="Soporte Social" bind:value={newSocial} step="0.001"/>
             <button class="btn-add" on:click={addIndex}>Añadir</button>
@@ -105,7 +105,7 @@ if (dev) url = 'http://localhost:8080' + url;
             <tr>
                 <th>País</th>
                 <th>Año</th>
-                <th>Puntuación</th>
+                <th>Puntuación de Felicidad</th>
                 <th>PIB per cápita</th>
                 <th>Soporte Social</th>
                 <th>Acciones</th>
