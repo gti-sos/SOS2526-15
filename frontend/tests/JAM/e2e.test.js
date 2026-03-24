@@ -31,7 +31,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         // Rellenar el formulario
         await page.fill('input[placeholder="País"]', 'testcountry');
         await page.fill('input[placeholder="Año"]', '2024');
-        await page.fill('input[placeholder="Puntuación"]', '6.500');
+        await page.fill('input[placeholder="Puntuación de Felicidad"]', '6.500');
         await page.fill('input[placeholder="PIB per cápita"]', '1.500');
         await page.fill('input[placeholder="Soporte Social"]', '1.200');
 
