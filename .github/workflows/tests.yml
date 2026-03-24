@@ -1,4 +1,4 @@
-name: SOS2526 Continuous Integration
+name: SOS2526-15 CI — API Tests + E2E Playwright
 
 on:
   push:
@@ -7,29 +7,199 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  # ─────────────────────────────────────────────
+  # JOB 1: Tests de API con Newman (todas las APIs)
+  # ─────────────────────────────────────────────
+  api-tests:
+    name: 🧪 API Tests (Newman)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Instalar dependencias del backend
         run: npm install
 
-      - name: Build Frontend
+      - name: 🏗️ Build del frontend
         run: |
           cd frontend
           npm install
           npm run build
 
-      - name: Start Server and Run Tests
+      - name: 🚀 Arrancar servidor y ejecutar tests de API
         run: |
           node index.js &
-          npx wait-on -t 30000 http-get://localhost:8080/api/v1/happiness-indices http-get://localhost:8080/api/v1/population-densities http-get://localhost:8080/api/v1/minimum-interprofessional-wages
-          npm test
+          npx wait-on \
+            -t 30000 \
+            http-get://localhost:8080/api/v1/happiness-indices \
+            http-get://localhost:8080/api/v1/population-densities \
+            http-get://localhost:8080/api/v1/minimum-interprofessional-wages
+          npm run test-JAM
+          npm run test-SMB
+          npm run test-YHX
+
+  # ─────────────────────────────────────────────
+  # JOB 2: E2E Playwright — JAM (Javier Arroyo)
+  # ─────────────────────────────────────────────
+  e2e-JAM:
+    name: 🎭 E2E JAM — Happiness Indices (Javier Arroyo)
+    runs-on: ubuntu-latest
+    needs: api-tests
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias del backend
+        run: npm install
+
+      - name: 📦 Instalar dependencias del frontend (con Playwright)
+        run: |
+          cd frontend
+          npm install
+
+      - name: 🎭 Instalar navegadores de Playwright
+        run: |
+          cd frontend
+          npx playwright install chromium --with-deps
+
+      - name: 🏗️ Build del frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: 🚀 Arrancar servidor y ejecutar tests E2E de JAM
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          node index.js &
+          npx wait-on -t 30000 http-get://localhost:8080/happiness-indices
+          cd frontend
+          npx playwright test tests/JAM/e2e.test.js --reporter=github
+
+      - name: 📊 Subir reporte de Playwright (JAM)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-JAM
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # JOB 3: E2E Playwright — SMB (Samanta Montoya)
+  # ─────────────────────────────────────────────
+  e2e-SMB:
+    name: 🎭 E2E SMB — Salarios Mínimos (Samanta Montoya)
+    runs-on: ubuntu-latest
+    needs: api-tests
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias del backend
+        run: npm install
+
+      - name: 📦 Instalar dependencias del frontend (con Playwright)
+        run: |
+          cd frontend
+          npm install
+
+      - name: 🎭 Instalar navegadores de Playwright
+        run: |
+          cd frontend
+          npx playwright install chromium --with-deps
+
+      - name: 🏗️ Build del frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: 🚀 Arrancar servidor y ejecutar tests E2E de SMB
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          node index.js &
+          npx wait-on -t 30000 http-get://localhost:8080/minimum-interprofessional-wages
+          cd frontend
+          npx playwright test tests/SMB/e2e.test.js --reporter=github
+
+      - name: 📊 Subir reporte de Playwright (SMB)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-SMB
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # JOB 4: E2E Playwright — YHX (Adrián López)
+  # ─────────────────────────────────────────────
+  e2e-YHX:
+    name: 🎭 E2E YHX — Densidades de Población (Adrián López)
+    runs-on: ubuntu-latest
+    needs: api-tests
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias del backend
+        run: npm install
+
+      - name: 📦 Instalar dependencias del frontend (con Playwright)
+        run: |
+          cd frontend
+          npm install
+
+      - name: 🎭 Instalar navegadores de Playwright
+        run: |
+          cd frontend
+          npx playwright install chromium --with-deps
+
+      - name: 🏗️ Build del frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: 🚀 Arrancar servidor y ejecutar tests E2E de YHX
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          node index.js &
+          npx wait-on -t 30000 http-get://localhost:8080/population-densities
+          cd frontend
+          npx playwright test tests/YHX/e2e.test.js --reporter=github
+
+      - name: 📊 Subir reporte de Playwright (YHX)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-YHX
+          path: frontend/playwright-report/
+          retention-days: 7

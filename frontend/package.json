@@ -7,9 +7,14 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''"
+		"prepare": "svelte-kit sync || echo ''",
+		"test:e2e": "playwright test",
+		"test:e2e:JAM": "playwright test tests/JAM/e2e.test.js",
+		"test:e2e:SMB": "playwright test tests/SMB/e2e.test.js",
+		"test:e2e:YHX": "playwright test tests/YHX/e2e.test.js"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.49.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/kit": "^2.50.2",
