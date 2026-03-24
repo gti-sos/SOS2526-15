@@ -116,7 +116,7 @@ async function buscarDatos() {
         <div class="alerta" style="background-color: {mensajeColor};">{mensaje}</div>
     {/if}
 
-    <button class="btn-load" on:click={loadInitialData}>Cargar Datos de Prueba</button>
+    <button class="btn-load" onclick={loadInitialData}>Cargar Datos de Prueba</button>
 
     <section class="formulario">
         <h3>Añadir país</h3>
@@ -126,7 +126,7 @@ async function buscarDatos() {
             <input type="number" placeholder="Puntuación de Felicidad" bind:value={newScore} step="0.001"/>
             <input type="number" placeholder="PIB per cápita" bind:value={newGdp} step="0.001"/>
             <input type="number" placeholder="Soporte Social" bind:value={newSocial} step="0.001"/>
-            <button class="btn-add" on:click={addIndex}>Añadir</button>
+            <button class="btn-add" onclick={addIndex}>Añadir</button>
         </div>
     </section>
     <section style="margin-bottom: 20px; padding: 10px; background-color: #f0f0f0;">
@@ -158,14 +158,14 @@ async function buscarDatos() {
                     <td>{item.social_support}</td>
                     <td>
                         <a href="/happiness-indices/{item.country}/{item.year}" class="btn-edit">Editar</a>
-                        <button class="btn-delete" on:click={() => deleteIndex(item.country, item.year)}>Borrar</button>
+                        <button class="btn-delete" onclick={() => deleteIndex(item.country, item.year)}>Borrar</button>
                     </td>
                 </tr>
             {/each}
         </tbody>
     </table>
 
-    <button class="btn-danger" on:click={deleteAll}>Borrar todos los datos</button>
+    <button class="btn-danger" onclick={deleteAll}>Borrar todos los datos</button>
 </main>
 
 <style>
