@@ -80,8 +80,7 @@ if (dev) url = 'http://localhost:8080' + url;
     }
 
     onMount(getIndices);
-
-    async function buscarDatos() {
+async function buscarDatos() {
         let queryParams = [];
         if (searchFrom) queryParams.push(`from=${searchFrom}`);
         if (searchTo) queryParams.push(`to=${searchTo}`);
@@ -98,14 +97,17 @@ if (dev) url = 'http://localhost:8080' + url;
             happinessIndices = []; // Vaciamos la tabla
             mostrarMensaje("⚠️ No se han encontrado datos en ese rango de años.", "orange");
         }
-        function limpiarBusqueda() {
+    }
+
+    // Esta función va FUERA de buscarDatos()
+    function limpiarBusqueda() {
         searchFrom = "";
         searchTo = "";
         getIndices();
         mostrarMensaje("🧹 Búsqueda limpiada. Mostrando todos los datos.", "gray");
-        }
     }
 </script>
+
 
 <main>
     <h1>📊 Índices de Felicidad</h1>
