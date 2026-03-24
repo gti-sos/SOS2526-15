@@ -15,6 +15,9 @@ if (dev) url = 'http://localhost:8080' + url;
     let newGdp = $state("");
     let newSocial = $state("");
 
+    let searchFrom = $state("");
+    let searchTo = $state("");
+
     async function getIndices() {
         const res = await fetch(url);
         if (res.ok) happinessIndices = await res.json();
@@ -77,6 +80,25 @@ if (dev) url = 'http://localhost:8080' + url;
     }
 
     onMount(getIndices);
+
+    async function buscarDatos() {
+        let queryParams = [];
+        if (searchFrom) queryParams.push(`from=${searchFrom}`);
+        if (searchTo) queryParams.push(`to=${searchTo}`);
+
+        // Montamos la URL (ej: /api/v2/happiness-indices?from=2020&to=2023)
+        let query = queryParams.length > 0 ? "?" + queryParams.join("&") : "";
+
+        const res = await fetch(url + query);
+        
+        if (res.ok) {
+            happinessIndices = await res.json();
+            mostrarMensaje(`✅ Búsqueda completada. Se encontraron ${happinessIndices.length} resultados.`, "green");
+        } else if (res.status === 404) {
+            happinessIndices = []; // Vaciamos la tabla
+            mostrarMensaje("⚠️ No se han encontrado datos en ese rango de años.", "orange");
+        }
+    }
 </script>
 
 <main>
@@ -99,7 +121,14 @@ if (dev) url = 'http://localhost:8080' + url;
             <button class="btn-add" on:click={addIndex}>Añadir</button>
         </div>
     </section>
-
+    <section style="margin-bottom: 20px; padding: 10px; background-color: #f0f0f0;">
+            <h3>🔍 Buscar datos por año</h3>
+            <input type="number" placeholder="Desde el año..." bind:value={searchFrom} />
+            <input type="number" placeholder="Hasta el año..." bind:value={searchTo} />
+            
+            <button onclick={buscarDatos}>Buscar</button>
+            <button onclick={() => { searchFrom = ""; searchTo = ""; getIndices(); }}>Limpiar Búsqueda</button>
+        </section>
     <table>
         <thead>
             <tr>
