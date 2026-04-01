@@ -29,11 +29,9 @@
   // @ts-ignore
   let newPercentageChange = $state("");
 
-  // Variables para la BÚSQUEDA AVANZADA
+  // Variables para la BÚSQUEDA AVANZADA (Simplificada)
   // @ts-ignore
   let searchCountry = $state("");
-  // @ts-ignore
-  let searchYear = $state("");
   // @ts-ignore
   let searchFrom = $state("");
   // @ts-ignore
@@ -44,10 +42,6 @@
   let searchPopulation = $state("");
   // @ts-ignore
   let searchPercentageChange = $state("");
-  // @ts-ignore
-  let searchLimit = $state("");
-  // @ts-ignore
-  let searchOffset = $state("");
 
   // ---------------- FUNCIONES ----------------
 
@@ -56,16 +50,12 @@
     let query = new URLSearchParams();
     
     if (searchCountry) query.append("country", searchCountry);
-    if (searchYear) query.append("year", searchYear);
     if (searchFrom) query.append("from", searchFrom);
     if (searchTo) query.append("to", searchTo);
     if (searchDensity) query.append("density", searchDensity);
     if (searchPopulation) query.append("population", searchPopulation);
     if (searchPercentageChange) query.append("percentage_change", searchPercentageChange);
-    if (searchLimit) query.append("limit", searchLimit);
-    if (searchOffset) query.append("offset", searchOffset);
 
-    // === AQUÍ ESTÁ LA MAGIA ===
     // Actualizamos la URL visible del navegador sin recargar la página
     goto(`?${query.toString()}`, { replaceState: true, keepFocus: true });
 
@@ -97,9 +87,8 @@
   }
 
   function limpiarBusqueda() {
-    searchCountry = ""; searchYear = ""; searchFrom = ""; searchTo = "";
+    searchCountry = ""; searchFrom = ""; searchTo = "";
     searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
-    searchLimit = ""; searchOffset = "";
     getDensities(); // Al llamar a getDensities con todo vacío, la URL también se limpiará
   }
 
@@ -190,18 +179,14 @@
   }
 
   onMount(() => {
-    // Al cargar la página, comprobamos si la URL ya tiene algún filtro escrito (ej. ?country=españa)
-    // y lo ponemos en las cajas de texto automáticamente.
+    // Al cargar la página, comprobamos si la URL ya tiene algún filtro escrito
     const params = $page.url.searchParams;
     searchCountry = params.get("country") || "";
-    searchYear = params.get("year") || "";
     searchFrom = params.get("from") || "";
     searchTo = params.get("to") || "";
     searchDensity = params.get("density") || "";
     searchPopulation = params.get("population") || "";
     searchPercentageChange = params.get("percentage_change") || "";
-    searchLimit = params.get("limit") || "";
-    searchOffset = params.get("offset") || "";
 
     getDensities();
   });
@@ -220,42 +205,34 @@
   </div>
 
   <div class="card mb-4 p-3 bg-light shadow-sm">
-    <h5 class="mb-3">🔍 Búsqueda Avanzada y Paginación</h5>
+    <h5 class="mb-3">🔍 Búsqueda Avanzada</h5>
+    
     <div class="row g-2 mb-2">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input bind:value={searchCountry} placeholder="País" class="form-control form-control-sm" />
       </div>
-      <div class="col-md-3">
-        <input type="number" bind:value={searchYear} placeholder="Año exacto" class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input type="number" bind:value={searchFrom} placeholder="Desde año (from)" class="form-control form-control-sm" />
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input type="number" bind:value={searchTo} placeholder="Hasta año (to)" class="form-control form-control-sm" />
       </div>
     </div>
     
     <div class="row g-2 mb-3">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input type="number" step="0.1" bind:value={searchDensity} placeholder="Densidad" class="form-control form-control-sm" />
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input type="number" bind:value={searchPopulation} placeholder="Población" class="form-control form-control-sm" />
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="% Cambio" class="form-control form-control-sm" />
       </div>
     </div>
 
     <div class="row g-2 align-items-center border-top pt-2">
-      <div class="col-md-2">
-        <input type="number" bind:value={searchLimit} placeholder="Límite (limit)" class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-2">
-        <input type="number" bind:value={searchOffset} placeholder="Salto (offset)" class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-8 d-flex justify-content-end gap-2">
+      <div class="col-md-12 d-flex justify-content-end gap-2">
         <Button color="outline-secondary" size="sm" onclick={limpiarBusqueda}>Limpiar Filtros</Button>
         <Button color="primary" size="sm" onclick={getDensities}>Buscar</Button>
       </div>
