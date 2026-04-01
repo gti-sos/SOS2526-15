@@ -3,11 +3,10 @@
   import { onMount } from 'svelte';
   import { Button, Table } from '@sveltestrap/sveltestrap';
 
-  // Ruta de tu API
   let API = '/api/v1/population-densities';
   if (dev) API = "http://localhost:8080" + API;
 
-  // Variables de estado
+  // Variables de estado generales
   // @ts-ignore
   let densities = $state([]);
   // @ts-ignore
@@ -15,7 +14,7 @@
   // @ts-ignore
   let mensajeColor = $state("green");
 
-  // Campos para crear un nuevo recurso
+  // Variables para crear recurso
   // @ts-ignore
   let newCountry = $state("");
   // @ts-ignore
@@ -27,17 +26,38 @@
   // @ts-ignore
   let newPercentageChange = $state("");
 
+  // Variables para la BÚSQUEDA (Requisito vi)
+  // @ts-ignore
+  let searchCountry = $state("");
+  // @ts-ignore
+  let searchFrom = $state("");
+  // @ts-ignore
+  let searchTo = $state("");
+
   // ---------------- FUNCIONES ----------------
 
-  // ii) Listar todos los recursos
+  // Búsqueda y Listado
   async function getDensities() {
+    let query = new URLSearchParams();
+    if (searchCountry) query.append("country", searchCountry);
+    if (searchFrom) query.append("from", searchFrom);
+    if (searchTo) query.append("to", searchTo);
+
+    let fetchUrl = API;
+    if (query.toString()) {
+      fetchUrl += `?${query.toString()}`;
+    }
+
     try {
-      const res = await fetch(API, { method: "GET" });
+      const res = await fetch(fetchUrl, { method: "GET" });
       if (res.ok) {
         densities = await res.json();
-        // Ocultamos el mensaje de éxito al simplemente recargar la lista para no ser pesados
+        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array
+        if (!Array.isArray(densities)) {
+            densities = [densities];
+        }
       } else {
-        resultMensaje = "Error al obtener los datos del servidor.";
+        resultMensaje = "Error al obtener los datos. Código: " + res.status;
         mensajeColor = "red";
       }
     } catch (err) {
@@ -46,7 +66,14 @@
     }
   }
 
-  // v) Cargar datos iniciales
+  function limpiarBusqueda() {
+    searchCountry = "";
+    searchFrom = "";
+    searchTo = "";
+    getDensities();
+  }
+
+  // Cargar datos iniciales
   async function loadInitialData() {
     try {
       const res = await fetch(`${API}/loadInitialData`, { method: "GET" });
@@ -55,16 +82,16 @@
         mensajeColor = "green";
         getDensities();
       } else {
-        resultMensaje = "Ocurrió un error al intentar cargar los datos iniciales.";
+        resultMensaje = "Error al cargar los datos iniciales.";
         mensajeColor = "red";
       }
     } catch (err) {
-      resultMensaje = "Error de conexión al cargar datos.";
+      resultMensaje = "Error de conexión.";
       mensajeColor = "red";
     }
   }
 
-  // i) Crear recurso (Añadido control de errores 400 y 409)
+  // Crear recurso
   async function insertDensity() {
     const newEntry = {
       country: newCountry,
@@ -82,37 +109,31 @@
       });
 
       if (res.status === 201) {
-        resultMensaje = `El registro de ${newCountry} (${newYear}) se ha creado con éxito.`;
+        resultMensaje = `Registro de ${newCountry} creado.`;
         mensajeColor = "green";
         newCountry = ""; newYear = ""; newDensity = ""; newPopulation = ""; newPercentageChange = "";
         getDensities();
       } else if (res.status === 409) {
-        resultMensaje = `Conflicto: Ya existe un registro para ${newCountry} en el año ${newYear}.`;
+        resultMensaje = "Conflicto: Ya existe un registro para ese país y año.";
         mensajeColor = "orange";
-      } else if (res.status === 400) {
-        resultMensaje = "Error: Faltan campos por rellenar o los datos no son válidos.";
-        mensajeColor = "red";
       } else {
-        resultMensaje = "Error inesperado al crear el recurso.";
+        resultMensaje = "Error al crear: Faltan datos o formato incorrecto.";
         mensajeColor = "red";
       }
     } catch (err) {
-      resultMensaje = "Error de conexión con la API.";
+      resultMensaje = "Error de conexión.";
       mensajeColor = "red";
     }
   }
 
-  // iv) Borrar un recurso concreto (Añadido control de error 404)
+  // Borrar recurso concreto
   async function deleteDensity(country, year) {
     try {
       const res = await fetch(`${API}/${country}/${year}`, { method: "DELETE" });
       if (res.status === 200 || res.status === 204) {
-        resultMensaje = `El registro de ${country} en ${year} ha sido borrado correctamente.`;
+        resultMensaje = `Registro de ${country} (${year}) borrado.`;
         mensajeColor = "green";
         getDensities();
-      } else if (res.status === 404) {
-        resultMensaje = `No existe ningún registro de ${country} en el año ${year} para borrar.`;
-        mensajeColor = "orange";
       } else {
         resultMensaje = "Error al borrar el recurso.";
         mensajeColor = "red";
@@ -123,18 +144,15 @@
     }
   }
 
-  // iii) Borrar todos los recursos
+  // Borrar todos
   async function deleteAll() {
-    if (confirm("¿Estás seguro de que quieres borrar todos los datos?")) {
+    if (confirm("¿Seguro que quieres borrar TODOS los datos?")) {
       try {
         const res = await fetch(API, { method: "DELETE" });
         if (res.status === 200 || res.status === 204) {
-          resultMensaje = "Todos los registros han sido borrados de la base de datos.";
+          resultMensaje = "Todos los registros han sido borrados.";
           mensajeColor = "green";
-          densities = []; // Vaciamos la tabla directamente
-        } else {
-          resultMensaje = "Error al intentar borrar todos los datos.";
-          mensajeColor = "red";
+          densities = [];
         }
       } catch (err) {
         resultMensaje = "Error de conexión.";
@@ -143,7 +161,6 @@
     }
   }
 
-  // Cargar datos al entrar a la página
   onMount(() => {
     getDensities();
   });
@@ -161,6 +178,25 @@
     <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
   </div>
 
+  <div class="card mb-3 p-3 bg-light">
+    <h5>Búsqueda Avanzada</h5>
+    <div class="row g-2">
+      <div class="col-md-3">
+        <input bind:value={searchCountry} placeholder="Buscar por país" class="form-control" />
+      </div>
+      <div class="col-md-3">
+        <input type="number" bind:value={searchFrom} placeholder="Desde año (ej. 2020)" class="form-control" />
+      </div>
+      <div class="col-md-3">
+        <input type="number" bind:value={searchTo} placeholder="Hasta año (ej. 2025)" class="form-control" />
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <Button color="secondary" onclick={getDensities}>Buscar</Button>
+        <Button color="outline-secondary" onclick={limpiarBusqueda}>Limpiar</Button>
+      </div>
+    </div>
+  </div>
+
   <Table striped bordered responsive>
     <thead>
       <tr>
@@ -174,24 +210,12 @@
     </thead>
     <tbody>
       <tr>
-        <td>
-          <input bind:value={newCountry} placeholder="País" class="form-control"/>
-        </td>
-        <td>
-          <input type="number" bind:value={newYear} placeholder="Año" class="form-control"/>
-        </td>
-        <td>
-          <input type="number" step="0.1" bind:value={newDensity} placeholder="Densidad" class="form-control"/>
-        </td>
-        <td>
-          <input type="number" bind:value={newPopulation} placeholder="Población" class="form-control"/>
-        </td>
-        <td>
-          <input type="number" step="0.01" bind:value={newPercentageChange} placeholder="% Cambio" class="form-control"/>
-        </td>
-        <td>
-          <Button color="success" onclick={insertDensity}>Crear</Button>
-        </td>
+        <td><input bind:value={newCountry} placeholder="País" class="form-control"/></td>
+        <td><input type="number" bind:value={newYear} placeholder="Año" class="form-control"/></td>
+        <td><input type="number" step="0.1" bind:value={newDensity} placeholder="Densidad" class="form-control"/></td>
+        <td><input type="number" bind:value={newPopulation} placeholder="Población" class="form-control"/></td>
+        <td><input type="number" step="0.01" bind:value={newPercentageChange} placeholder="% Cambio" class="form-control"/></td>
+        <td><Button color="success" onclick={insertDensity}>Crear</Button></td>
       </tr>
 
       {#each densities as density (density.country + density.year)}
@@ -202,7 +226,10 @@
           <td>{density.population}</td>
           <td>{density.percentage_change}</td>
           <td>
-            <Button color="danger" onclick={() => deleteDensity(density.country, density.year)}>Borrar</Button>
+            <div class="d-flex gap-2">
+              <a href="/population-densities/{density.country}/{density.year}" class="btn btn-warning btn-sm">Editar</a>
+              <Button color="danger" size="sm" onclick={() => deleteDensity(density.country, density.year)}>Borrar</Button>
+            </div>
           </td>
         </tr>
       {/each}
