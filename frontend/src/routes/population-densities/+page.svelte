@@ -26,22 +26,41 @@
   // @ts-ignore
   let newPercentageChange = $state("");
 
-  // Variables para la BÚSQUEDA (Requisito vi)
+  // Variables para la BÚSQUEDA AVANZADA (Requisito vi)
   // @ts-ignore
   let searchCountry = $state("");
+  // @ts-ignore
+  let searchYear = $state("");
   // @ts-ignore
   let searchFrom = $state("");
   // @ts-ignore
   let searchTo = $state("");
+  // @ts-ignore
+  let searchDensity = $state("");
+  // @ts-ignore
+  let searchPopulation = $state("");
+  // @ts-ignore
+  let searchPercentageChange = $state("");
+  // @ts-ignore
+  let searchLimit = $state("");
+  // @ts-ignore
+  let searchOffset = $state("");
 
   // ---------------- FUNCIONES ----------------
 
   // Búsqueda y Listado
   async function getDensities() {
     let query = new URLSearchParams();
+    
     if (searchCountry) query.append("country", searchCountry);
+    if (searchYear) query.append("year", searchYear);
     if (searchFrom) query.append("from", searchFrom);
     if (searchTo) query.append("to", searchTo);
+    if (searchDensity) query.append("density", searchDensity);
+    if (searchPopulation) query.append("population", searchPopulation);
+    if (searchPercentageChange) query.append("percentage_change", searchPercentageChange);
+    if (searchLimit) query.append("limit", searchLimit);
+    if (searchOffset) query.append("offset", searchOffset);
 
     let fetchUrl = API;
     if (query.toString()) {
@@ -52,10 +71,14 @@
       const res = await fetch(fetchUrl, { method: "GET" });
       if (res.ok) {
         densities = await res.json();
-        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array
+        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array [cite: 56]
         if (!Array.isArray(densities)) {
             densities = [densities];
         }
+      } else if (res.status === 404) {
+        densities = []; 
+        resultMensaje = "No se encontraron resultados para esta búsqueda.";
+        mensajeColor = "orange";
       } else {
         resultMensaje = "Error al obtener los datos. Código: " + res.status;
         mensajeColor = "red";
@@ -67,9 +90,9 @@
   }
 
   function limpiarBusqueda() {
-    searchCountry = "";
-    searchFrom = "";
-    searchTo = "";
+    searchCountry = ""; searchYear = ""; searchFrom = ""; searchTo = "";
+    searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
+    searchLimit = ""; searchOffset = "";
     getDensities();
   }
 
@@ -100,14 +123,12 @@
       population: parseInt(newPopulation),
       percentage_change: parseFloat(newPercentageChange)
     };
-
     try {
       const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry)
       });
-
       if (res.status === 201) {
         resultMensaje = `Registro de ${newCountry} creado.`;
         mensajeColor = "green";
@@ -178,21 +199,45 @@
     <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
   </div>
 
-  <div class="card mb-3 p-3 bg-light">
-    <h5>Búsqueda Avanzada</h5>
-    <div class="row g-2">
+  <div class="card mb-4 p-3 bg-light shadow-sm">
+    <h5 class="mb-3">🔍 Búsqueda Avanzada y Paginación</h5>
+    <div class="row g-2 mb-2">
       <div class="col-md-3">
-        <input bind:value={searchCountry} placeholder="Buscar por país" class="form-control" />
+        <input bind:value={searchCountry} placeholder="País" class="form-control form-control-sm" />
       </div>
       <div class="col-md-3">
-        <input type="number" bind:value={searchFrom} placeholder="Desde año (ej. 2020)" class="form-control" />
+        <input type="number" bind:value={searchYear} placeholder="Año exacto" class="form-control form-control-sm" />
       </div>
       <div class="col-md-3">
-        <input type="number" bind:value={searchTo} placeholder="Hasta año (ej. 2025)" class="form-control" />
+        <input type="number" bind:value={searchFrom} placeholder="Desde año (from)" class="form-control form-control-sm" />
       </div>
-      <div class="col-md-3 d-flex gap-2">
-        <Button color="secondary" onclick={getDensities}>Buscar</Button>
-        <Button color="outline-secondary" onclick={limpiarBusqueda}>Limpiar</Button>
+      <div class="col-md-3">
+        <input type="number" bind:value={searchTo} placeholder="Hasta año (to)" class="form-control form-control-sm" />
+      </div>
+    </div>
+    
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <input type="number" step="0.1" bind:value={searchDensity} placeholder="Densidad" class="form-control form-control-sm" />
+      </div>
+      <div class="col-md-3">
+        <input type="number" bind:value={searchPopulation} placeholder="Población" class="form-control form-control-sm" />
+      </div>
+      <div class="col-md-3">
+        <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="% Cambio" class="form-control form-control-sm" />
+      </div>
+    </div>
+
+    <div class="row g-2 align-items-center border-top pt-2">
+      <div class="col-md-2">
+        <input type="number" bind:value={searchLimit} placeholder="Límite (limit)" class="form-control form-control-sm" />
+      </div>
+      <div class="col-md-2">
+        <input type="number" bind:value={searchOffset} placeholder="Salto (offset)" class="form-control form-control-sm" />
+      </div>
+      <div class="col-md-8 d-flex justify-content-end gap-2">
+        <Button color="outline-secondary" size="sm" onclick={limpiarBusqueda}>Limpiar Filtros</Button>
+        <Button color="primary" size="sm" onclick={getDensities}>Buscar</Button>
       </div>
     </div>
   </div>
