@@ -2,6 +2,9 @@
   import { dev } from '$app/environment';
   import { onMount } from 'svelte';
   import { Button, Table } from '@sveltestrap/sveltestrap';
+  // Importamos las herramientas de navegación de SvelteKit
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
   let API = '/api/v1/population-densities';
   if (dev) API = "http://localhost:8080" + API;
@@ -26,7 +29,7 @@
   // @ts-ignore
   let newPercentageChange = $state("");
 
-  // Variables para la BÚSQUEDA AVANZADA (Requisito vi)
+  // Variables para la BÚSQUEDA AVANZADA
   // @ts-ignore
   let searchCountry = $state("");
   // @ts-ignore
@@ -62,6 +65,10 @@
     if (searchLimit) query.append("limit", searchLimit);
     if (searchOffset) query.append("offset", searchOffset);
 
+    // === AQUÍ ESTÁ LA MAGIA ===
+    // Actualizamos la URL visible del navegador sin recargar la página
+    goto(`?${query.toString()}`, { replaceState: true, keepFocus: true });
+
     let fetchUrl = API;
     if (query.toString()) {
       fetchUrl += `?${query.toString()}`;
@@ -71,7 +78,7 @@
       const res = await fetch(fetchUrl, { method: "GET" });
       if (res.ok) {
         densities = await res.json();
-        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array [cite: 56]
+        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array
         if (!Array.isArray(densities)) {
             densities = [densities];
         }
@@ -93,7 +100,7 @@
     searchCountry = ""; searchYear = ""; searchFrom = ""; searchTo = "";
     searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
     searchLimit = ""; searchOffset = "";
-    getDensities();
+    getDensities(); // Al llamar a getDensities con todo vacío, la URL también se limpiará
   }
 
   // Cargar datos iniciales
@@ -103,7 +110,7 @@
       if (res.status === 201 || res.ok) {
         resultMensaje = "Datos iniciales cargados con éxito.";
         mensajeColor = "green";
-        getDensities();
+        limpiarBusqueda(); // Limpiamos los filtros para que se vean todos los datos recién cargados
       } else {
         resultMensaje = "Error al cargar los datos iniciales.";
         mensajeColor = "red";
@@ -183,6 +190,19 @@
   }
 
   onMount(() => {
+    // Al cargar la página, comprobamos si la URL ya tiene algún filtro escrito (ej. ?country=españa)
+    // y lo ponemos en las cajas de texto automáticamente.
+    const params = $page.url.searchParams;
+    searchCountry = params.get("country") || "";
+    searchYear = params.get("year") || "";
+    searchFrom = params.get("from") || "";
+    searchTo = params.get("to") || "";
+    searchDensity = params.get("density") || "";
+    searchPopulation = params.get("population") || "";
+    searchPercentageChange = params.get("percentage_change") || "";
+    searchLimit = params.get("limit") || "";
+    searchOffset = params.get("offset") || "";
+
     getDensities();
   });
 </script>
