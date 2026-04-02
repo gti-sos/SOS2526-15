@@ -15,6 +15,13 @@
   let newNationalWage = $state("");
   let newDollarWage = $state("");
   let newPercentage = $state("");
+  let searchCountry = $state("");
+  let searchDate = $state("");
+  let searchNationalWage = $state("");
+  let searchDollarWage = $state("");
+  let searchPercentage = $state("");
+  let searchLimit = $state("");
+  let searchOffset = $state("");
 
   // ---------------- FUNCIONES ----------------
 
@@ -136,8 +143,63 @@
   }
 
   onMount(() => {
-    getWages(); // sin mensaje automático
+    getWages(); 
   });
+  async function searchWages() {
+  try {
+    let query = [];
+
+    if (searchCountry) query.push(`country=${searchCountry}`);
+    if (searchDate) query.push(`date=${searchDate}`);
+    if (searchNationalWage) query.push(`national_currency_minimum_wage=${searchNationalWage}`);
+    if (searchDollarWage) query.push(`nmw_on_dollar=${searchDollarWage}`);
+    if (searchPercentage) query.push(`percentage_change=${searchPercentage}`);
+    if (searchLimit) query.push(`limit=${searchLimit}`);
+    if (searchOffset) query.push(`offset=${searchOffset}`);
+
+    let url = API;
+    if (query.length > 0) {
+      url += "?" + query.join("&");
+    }
+
+    const res = await fetch(url);
+
+    if (res.status === 200) {
+      wages = await res.json();
+
+      if (wages.length === 0) {
+        resultMensaje = "No se encontraron resultados con esos filtros.";
+        mensajeColor = "orange";
+      } else {
+        resultMensaje = "Búsqueda realizada correctamente.";
+        mensajeColor = "green";
+      }
+
+    } else if (res.status === 400) {
+      resultMensaje = "Parámetros de búsqueda inválidos.";
+      mensajeColor = "red";
+    } else {
+      resultMensaje = "Error al realizar la búsqueda.";
+      mensajeColor = "red";
+    }
+
+  } catch {
+    resultMensaje = "Error al conectar con el servidor.";
+    mensajeColor = "red";
+  }
+}
+
+function clearSearch() {
+  searchCountry = "";
+  searchDate = "";
+  searchNationalWage = "";
+  searchDollarWage = "";
+  searchPercentage = "";
+  searchLimit = "";
+  searchOffset = "";
+
+  getWages();
+}
 </script>
 
 <h2>Salarios Mínimos Interprofesionales</h2>
@@ -149,6 +211,27 @@
 <div class="mb-3">
   <Button color="info" onclick={loadInitialData}>Cargar Datos Iniciales</Button>
   <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
+</div>
+<h3>Búsqueda</h3>
+
+<div class="mb-3">
+  <input placeholder="País" bind:value={searchCountry} />
+  <input type="number" placeholder="Año" bind:value={searchDate} />
+  <input type="number" placeholder="Salario nacional" bind:value={searchNationalWage} />
+  <input type="number" placeholder="USD" bind:value={searchDollarWage} />
+  <input type="number" placeholder="% Cambio" bind:value={searchPercentage} />
+  <input type="number" placeholder="Limit" bind:value={searchLimit} />
+  <input type="number" placeholder="Offset" bind:value={searchOffset} />
+
+  <br /><br />
+
+  <Button color="primary" onclick={searchWages}>
+    Buscar
+  </Button>
+
+  <Button color="secondary" onclick={clearSearch}>
+    Limpiar
+  </Button>
 </div>
 
 <Table>
