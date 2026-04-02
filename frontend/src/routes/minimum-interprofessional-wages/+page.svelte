@@ -38,7 +38,7 @@
         resultMensaje = `Recurso de ${country} (${date}) eliminado correctamente.`;
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
       } else if (res.status === 404) {
         resultMensaje = `No existe un recurso de ${country} para el año ${date}.`;
         mensajeColor = "red";
@@ -78,7 +78,7 @@
         resultMensaje = `Recurso de ${newCountry} (${newDate}) creado correctamente.`;
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
 
         newCountry = newDate = newNationalWage = newDollarWage = newPercentage = "";
       } else if (res.status === 409) {
@@ -102,7 +102,7 @@
         resultMensaje = "Datos iniciales cargados correctamente.";
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
       } else if (res.status === 409) {
         resultMensaje = "Los datos iniciales ya estaban cargados.";
         mensajeColor = "orange";
@@ -183,10 +183,16 @@
         <td>{wage.nmw_on_dollar}</td>
         <td>{wage.percentage_change}</td>
         <td>
-          <Button color="danger" onclick={() => deleteWage(wage.country, wage.date)}>
-            Borrar
+        <a href={`/minimum-interprofessional-wages/${wage.country}/${wage.date}`}>
+          <Button color="warning">
+            Editar
           </Button>
-        </td>
+        </a>
+
+        <Button color="danger" onclick={() => deleteWage(wage.country, wage.date)}>
+          Borrar
+        </Button>
+      </td>
       </tr>
     {/each}
 
