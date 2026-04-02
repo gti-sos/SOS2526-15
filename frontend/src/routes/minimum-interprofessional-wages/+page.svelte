@@ -249,11 +249,11 @@ function clearSearch() {
 
     <!-- Crear -->
     <tr>
-      <td><input bind:value={newCountry} placeholder="País"/></td>
-      <td><input type="number" bind:value={newDate} placeholder="Año"/></td>
-      <td><input type="number" step="0.01" bind:value={newNationalWage} placeholder="Salario"/></td>
-      <td><input type="number" step="0.01" bind:value={newDollarWage} placeholder="USD"/></td>
-      <td><input type="number" step="0.01" bind:value={newPercentage} placeholder="%"/></td>
+      <td><input bind:value={newCountry} data-testid="create-country" placeholder="País"/></td>
+      <td><input type="number" data-testid="create-date" bind:value={newDate} placeholder="Año"/></td>
+      <td><input type="number" data-testid="create-NationalWage" step="0.01" bind:value={newNationalWage} placeholder="Salario"/></td>
+      <td><input type="number" data-testid="create-USD" step="0.01" bind:value={newDollarWage} placeholder="USD"/></td>
+      <td><input type="number" data-testid="create-%" step="0.01" bind:value={newPercentage} placeholder="%"/></td>
       <td><Button color="primary" onclick={insertWage}>Crear</Button></td>
     </tr>
 
