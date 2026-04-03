@@ -15,6 +15,13 @@
   let newNationalWage = $state("");
   let newDollarWage = $state("");
   let newPercentage = $state("");
+  let searchCountry = $state("");
+  let searchDate = $state("");
+  let searchNationalWage = $state("");
+  let searchDollarWage = $state("");
+  let searchPercentage = $state("");
+  let searchLimit = $state("");
+  let searchOffset = $state("");
 
   // ---------------- FUNCIONES ----------------
 
@@ -38,7 +45,7 @@
         resultMensaje = `Recurso de ${country} (${date}) eliminado correctamente.`;
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
       } else if (res.status === 404) {
         resultMensaje = `No existe un recurso de ${country} para el año ${date}.`;
         mensajeColor = "red";
@@ -78,7 +85,7 @@
         resultMensaje = `Recurso de ${newCountry} (${newDate}) creado correctamente.`;
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
 
         newCountry = newDate = newNationalWage = newDollarWage = newPercentage = "";
       } else if (res.status === 409) {
@@ -102,7 +109,7 @@
         resultMensaje = "Datos iniciales cargados correctamente.";
         mensajeColor = "green";
 
-        getWages(); // ✅ SIN await
+        getWages(); 
       } else if (res.status === 409) {
         resultMensaje = "Los datos iniciales ya estaban cargados.";
         mensajeColor = "orange";
@@ -136,8 +143,63 @@
   }
 
   onMount(() => {
-    getWages(); // sin mensaje automático
+    getWages(); 
   });
+  async function searchWages() {
+  try {
+    let query = [];
+
+    if (searchCountry) query.push(`country=${searchCountry}`);
+    if (searchDate) query.push(`date=${searchDate}`);
+    if (searchNationalWage) query.push(`national_currency_minimum_wage=${searchNationalWage}`);
+    if (searchDollarWage) query.push(`nmw_on_dollar=${searchDollarWage}`);
+    if (searchPercentage) query.push(`percentage_change=${searchPercentage}`);
+    if (searchLimit) query.push(`limit=${searchLimit}`);
+    if (searchOffset) query.push(`offset=${searchOffset}`);
+
+    let url = API;
+    if (query.length > 0) {
+      url += "?" + query.join("&");
+    }
+
+    const res = await fetch(url);
+
+    if (res.status === 200) {
+      wages = await res.json();
+
+      if (wages.length === 0) {
+        resultMensaje = "No se encontraron resultados con esos filtros.";
+        mensajeColor = "orange";
+      } else {
+        resultMensaje = "Búsqueda realizada correctamente.";
+        mensajeColor = "green";
+      }
+
+    } else if (res.status === 400) {
+      resultMensaje = "Parámetros de búsqueda inválidos.";
+      mensajeColor = "red";
+    } else {
+      resultMensaje = "Error al realizar la búsqueda.";
+      mensajeColor = "red";
+    }
+
+  } catch {
+    resultMensaje = "Error al conectar con el servidor.";
+    mensajeColor = "red";
+  }
+}
+
+function clearSearch() {
+  searchCountry = "";
+  searchDate = "";
+  searchNationalWage = "";
+  searchDollarWage = "";
+  searchPercentage = "";
+  searchLimit = "";
+  searchOffset = "";
+
+  getWages();
+}
 </script>
 
 <h2>Salarios Mínimos Interprofesionales</h2>
@@ -149,6 +211,27 @@
 <div class="mb-3">
   <Button color="info" onclick={loadInitialData}>Cargar Datos Iniciales</Button>
   <Button color="danger" onclick={deleteAll}>Borrar Todos</Button>
+</div>
+<h3>Búsqueda</h3>
+
+<div class="mb-3">
+  <input placeholder="País" bind:value={searchCountry} />
+  <input type="number" placeholder="Año" bind:value={searchDate} />
+  <input type="number" placeholder="Salario nacional" bind:value={searchNationalWage} />
+  <input type="number" placeholder="USD" bind:value={searchDollarWage} />
+  <input type="number" placeholder="% Cambio" bind:value={searchPercentage} />
+  <input type="number" placeholder="Limit" bind:value={searchLimit} />
+  <input type="number" placeholder="Offset" bind:value={searchOffset} />
+
+  <br /><br />
+
+  <Button color="primary" onclick={searchWages}>
+    Buscar
+  </Button>
+
+  <Button color="secondary" onclick={clearSearch}>
+    Limpiar
+  </Button>
 </div>
 
 <Table>
@@ -166,11 +249,11 @@
 
     <!-- Crear -->
     <tr>
-      <td><input bind:value={newCountry} placeholder="País"/></td>
-      <td><input type="number" bind:value={newDate} placeholder="Año"/></td>
-      <td><input type="number" step="0.01" bind:value={newNationalWage} placeholder="Salario"/></td>
-      <td><input type="number" step="0.01" bind:value={newDollarWage} placeholder="USD"/></td>
-      <td><input type="number" step="0.01" bind:value={newPercentage} placeholder="%"/></td>
+      <td><input bind:value={newCountry} data-testid="create-country" placeholder="País"/></td>
+      <td><input type="number" data-testid="create-date" bind:value={newDate} placeholder="Año"/></td>
+      <td><input type="number" data-testid="create-NationalWage" step="0.01" bind:value={newNationalWage} placeholder="Salario"/></td>
+      <td><input type="number" data-testid="create-USD" step="0.01" bind:value={newDollarWage} placeholder="USD"/></td>
+      <td><input type="number" data-testid="create-%" step="0.01" bind:value={newPercentage} placeholder="%"/></td>
       <td><Button color="primary" onclick={insertWage}>Crear</Button></td>
     </tr>
 
@@ -183,10 +266,16 @@
         <td>{wage.nmw_on_dollar}</td>
         <td>{wage.percentage_change}</td>
         <td>
-          <Button color="danger" onclick={() => deleteWage(wage.country, wage.date)}>
-            Borrar
+        <a href={`/minimum-interprofessional-wages/${wage.country}/${wage.date}`}>
+          <Button color="warning">
+            Editar
           </Button>
-        </td>
+        </a>
+
+        <Button color="danger" onclick={() => deleteWage(wage.country, wage.date)}>
+          Borrar
+        </Button>
+      </td>
       </tr>
     {/each}
 
