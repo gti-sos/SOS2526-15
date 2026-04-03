@@ -73,7 +73,7 @@
             densities = [densities];
         }
       } else if (res.status === 404) {
-        densities = []; 
+        densities = [];
         resultMensaje = "No se encontraron resultados para esta búsqueda.";
         mensajeColor = "orange";
       } else {
@@ -87,9 +87,11 @@
   }
 
   function limpiarBusqueda() {
-    searchCountry = ""; searchFrom = ""; searchTo = "";
+    searchCountry = ""; searchFrom = "";
+    searchTo = "";
     searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
-    getDensities(); // Al llamar a getDensities con todo vacío, la URL también se limpiará
+    getDensities();
+    // Al llamar a getDensities con todo vacío, la URL también se limpiará
   }
 
   // Cargar datos iniciales
@@ -209,25 +211,27 @@
     
     <div class="row g-2 mb-2">
       <div class="col-md-4">
-        <input bind:value={searchCountry} placeholder="País" class="form-control form-control-sm" />
+        <input bind:value={searchCountry} placeholder="Filtrar por país..." class="form-control form-control-sm" />
+      </div>
+    
+      <div class="col-md-4">
+        <input type="number" bind:value={searchFrom} placeholder="Desde año..." class="form-control form-control-sm" />
       </div>
       <div class="col-md-4">
-        <input type="number" bind:value={searchFrom} placeholder="Desde año (from)" class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-4">
-        <input type="number" bind:value={searchTo} placeholder="Hasta año (to)" class="form-control form-control-sm" />
+        <input type="number" bind:value={searchTo} placeholder="Hasta año..." class="form-control form-control-sm" />
       </div>
     </div>
     
     <div class="row g-2 mb-3">
       <div class="col-md-4">
-        <input type="number" step="0.1" bind:value={searchDensity} placeholder="Densidad" class="form-control form-control-sm" />
+        <input type="number" step="0.1" bind:value={searchDensity} placeholder="Filtrar densidad..." class="form-control form-control-sm" />
+      </div>
+   
+      <div class="col-md-4">
+        <input type="number" bind:value={searchPopulation} placeholder="Filtrar población..." class="form-control form-control-sm" />
       </div>
       <div class="col-md-4">
-        <input type="number" bind:value={searchPopulation} placeholder="Población" class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-4">
-        <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="% Cambio" class="form-control form-control-sm" />
+        <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="Filtrar % cambio..." class="form-control form-control-sm" />
       </div>
     </div>
 
@@ -235,6 +239,7 @@
       <div class="col-md-12 d-flex justify-content-end gap-2">
         <Button color="outline-secondary" size="sm" onclick={limpiarBusqueda}>Limpiar Filtros</Button>
         <Button color="primary" size="sm" onclick={getDensities}>Buscar</Button>
+ 
       </div>
     </div>
   </div>
@@ -252,6 +257,7 @@
     </thead>
     <tbody>
       <tr>
+     
         <td><input bind:value={newCountry} placeholder="País" class="form-control"/></td>
         <td><input type="number" bind:value={newYear} placeholder="Año" class="form-control"/></td>
         <td><input type="number" step="0.1" bind:value={newDensity} placeholder="Densidad" class="form-control"/></td>
@@ -262,6 +268,7 @@
 
       {#each densities as density (density.country + density.year)}
         <tr>
+       
           <td>{density.country}</td>
           <td>{density.year}</td>
           <td>{density.density}</td>
