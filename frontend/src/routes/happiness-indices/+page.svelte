@@ -24,10 +24,13 @@ if (dev) url = 'http://localhost:8080' + url;
     let searchOffset = $state("");
 
     async function getIndices() {
-        const res = await fetch(url);
-        if (res.ok) happinessIndices = await res.json();
-    }
-
+            let parametrosURL = window.location.search; 
+            const res = await fetch(url + parametrosURL);
+            
+            if (res.ok) {
+                happinessIndices = await res.json();
+            }
+        }
     async function loadInitialData() {
         const res = await fetch(`${url}/loadInitialData`);
         if (res.status === 201) {
@@ -108,11 +111,16 @@ async function buscarDatos() {
 }
 
     // Esta función va FUERA de buscarDatos()
-function limpiarBusqueda() {
-    searchCountry = searchYear = searchScore = searchGdp = searchSocial = searchLimit = searchOffset = "";
-    getIndices();
-    mostrarMensaje("🧹 Búsqueda limpiada.", "gray");
-}
+    function limpiarBusqueda() {
+            searchFrom = "";
+            searchTo = "";
+            
+            // Borramos el ?country=... de la barra de direcciones del navegador
+            window.history.pushState({}, '', window.location.pathname); 
+            
+            getIndices();
+            mostrarMensaje("🧹 Búsqueda limpiada. Mostrando todos los datos.", "gray");
+        }
 </script>
 
 
