@@ -7,7 +7,7 @@
   let country = page.params.country;
   let date = page.params.date;
 
-  let API = '/api/v1/minimum-interprofessional-wages';
+  let API = '/api/v2/minimum-interprofessional-wages';
   if (dev) API = "http://localhost:8080" + API;
 
   let resultMensaje = $state("");
