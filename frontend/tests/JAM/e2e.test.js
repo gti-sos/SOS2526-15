@@ -52,13 +52,11 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
     test('Se puede borrar un registro concreto', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
 
-        // Cargamos datos
         await page.click('button.btn-load');
         await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
 
         const countBefore = await page.locator('tbody tr').count();
 
-        // Borramos la primera fila
         await page.locator('button.btn-delete').first().click();
 
         await expect(page.locator('tbody tr')).toHaveCount(countBefore - 1, { timeout: 5000 });
@@ -73,7 +71,6 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.click('button.btn-load');
         await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
 
-        // Aceptar el confirm() del navegador automáticamente
         page.on('dialog', dialog => dialog.accept());
 
         await page.click('button.btn-danger');
@@ -90,7 +87,6 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.click('button.btn-load');
         await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
 
-        // Click en el primer enlace de edición
         await page.locator('a.btn-edit').first().click();
 
         // La URL debe seguir el patrón /happiness-indices/<country>/<year>
@@ -106,7 +102,6 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.click('button.btn-load');
         await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
 
-        // Ir a la vista de edición del primer recurso
         await page.locator('a.btn-edit').first().click();
         await expect(page).toHaveURL(/\/happiness-indices\/.+\/.+/);
 
@@ -129,16 +124,13 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.locator('a.btn-edit').first().click();
         await expect(page).toHaveURL(/\/happiness-indices\/.+\/.+/);
 
-        // Clic en volver
         await page.locator('a.btn-back').click();
 
         await expect(page).toHaveURL(/\/happiness-indices$/);
     });
 
     // ─────────────────────────────────────────────
-    // 6. Buscar recursos usando la búsqueda de la API
-    //    (filtros: country, year, from/to, happiness_score,
-    //     gdp_per_capita, social_support, limit, offset)
+    // 6. Buscar recursos usando los filtros de la API
     // ─────────────────────────────────────────────
     test('La búsqueda por país filtra correctamente los resultados', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
@@ -168,7 +160,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await expect(page.locator('tbody')).toContainText('2022');
     });
 
-    test('La búsqueda con limit y offset pagina los resultados correctamente', async ({ page }) => {
+    test('La búsqueda con limit pagina los resultados correctamente', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
 
         await page.click('button.btn-load');
@@ -224,6 +216,39 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.locator('section >> button', { hasText: 'Buscar' }).click();
 
         await expect(page.locator('tbody tr')).toHaveCount(0, { timeout: 5000 });
+    });
+
+    // ─────────────────────────────────────────────
+    // 7. Búsqueda mediante parámetros en la URL
+    // ─────────────────────────────────────────────
+    test('Acceder con ?country=finland en la URL filtra automáticamente', async ({ page }) => {
+        // Cargamos datos directamente via API antes de navegar
+        await fetch(`${API}/loadInitialData`);
+
+        await page.goto(`${BASE_URL}/happiness-indices?country=finland`);
+
+        // Debe mostrar sólo las 2 filas de finland y el input debe estar relleno
+        await expect(page.locator('tbody tr')).toHaveCount(2, { timeout: 10000 });
+        await expect(page.locator('input[placeholder="País"]')).toHaveValue('finland');
+    });
+
+    test('Acceder con ?year=2022 en la URL filtra automáticamente', async ({ page }) => {
+        await fetch(`${API}/loadInitialData`);
+
+        await page.goto(`${BASE_URL}/happiness-indices?year=2022`);
+
+        await expect(page.locator('tbody tr')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('input[placeholder="Año"]')).toHaveValue('2022');
+    });
+
+    test('Acceder con ?country=spain&year=2023 en la URL filtra por ambos campos', async ({ page }) => {
+        await fetch(`${API}/loadInitialData`);
+
+        await page.goto(`${BASE_URL}/happiness-indices?country=spain&year=2023`);
+
+        await expect(page.locator('tbody tr')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('input[placeholder="País"]')).toHaveValue('spain');
+        await expect(page.locator('input[placeholder="Año"]')).toHaveValue('2023');
     });
 
 });
