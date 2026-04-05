@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import { Button, Table } from '@sveltestrap/sveltestrap';
 
-  let API = '/api/v1/minimum-interprofessional-wages';
+  let API = '/api/v2/minimum-interprofessional-wages';
   if (dev) API = "http://localhost:8080" + API;
 
   let wages = $state([]);
@@ -17,6 +17,8 @@
   let newPercentage = $state("");
   let searchCountry = $state("");
   let searchDate = $state("");
+  let searchFrom = $state("");
+  let searchTo = $state("");
   let searchNationalWage = $state("");
   let searchDollarWage = $state("");
   let searchPercentage = $state("");
@@ -151,6 +153,8 @@
 
     if (searchCountry) query.push(`country=${searchCountry}`);
     if (searchDate) query.push(`date=${searchDate}`);
+    if (searchFrom) query.push(`from=${searchFrom}`);
+    if (searchTo) query.push(`to=${searchTo}`);
     if (searchNationalWage) query.push(`national_currency_minimum_wage=${searchNationalWage}`);
     if (searchDollarWage) query.push(`nmw_on_dollar=${searchDollarWage}`);
     if (searchPercentage) query.push(`percentage_change=${searchPercentage}`);
@@ -192,6 +196,8 @@
 function clearSearch() {
   searchCountry = "";
   searchDate = "";
+  searchFrom = "";
+  searchTo = "";
   searchNationalWage = "";
   searchDollarWage = "";
   searchPercentage = "";
@@ -217,11 +223,13 @@ function clearSearch() {
 <div class="mb-3">
   <input placeholder="País" bind:value={searchCountry} />
   <input type="number" placeholder="Año" bind:value={searchDate} />
+  <input type="number" placeholder="Desde (año)" bind:value={searchFrom} />
+  <input type="number" placeholder="Hasta (año)" bind:value={searchTo} />
   <input type="number" placeholder="Salario nacional" bind:value={searchNationalWage} />
   <input type="number" placeholder="USD" bind:value={searchDollarWage} />
   <input type="number" placeholder="% Cambio" bind:value={searchPercentage} />
-  <input type="number" placeholder="Limit" bind:value={searchLimit} />
-  <input type="number" placeholder="Offset" bind:value={searchOffset} />
+  <input type="number" placeholder="Entradas" bind:value={searchLimit} />
+  <input type="number" placeholder="Primer resultado" bind:value={searchOffset} />
 
   <br /><br />
 

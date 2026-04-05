@@ -51,7 +51,8 @@
             <ul>
                 <li>🖥️ <a href="/minimum-interprofessional-wages">Interfaz Visual (Front-end)</a></li>
                 <li>⚙️ <a href="/api/v1/minimum-interprofessional-wages">URL Base API (v1)</a></li>
-                <li>📚 <a href="/api/v1/minimum-interprofessional-wages/docs" target="_blank">Documentación Postman</a></li>
+                <li>⚙️ <a href="/api/v2/minimum-interprofessional-wages">URL Base API (v2)</a></li>
+                <li>📚 <a href="/api/v2/minimum-interprofessional-wages/docs" target="_blank">Documentación Postman</a></li>
             </ul>
         </section>
     </div>

@@ -29,13 +29,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/loadInitialData",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/loadInitialData",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "loadInitialData"
           ]
@@ -65,13 +65,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/loadInitialData",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/loadInitialData",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "loadInitialData"
           ]
@@ -101,13 +101,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         }
@@ -138,13 +138,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -174,13 +174,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran"
           ]
@@ -209,13 +209,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/faerun/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/faerun/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "faerun",
             "2024"
@@ -245,13 +245,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/faerun",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/faerun",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "faerun"
           ]
@@ -290,13 +290,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         },
@@ -335,13 +335,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         },
@@ -379,13 +379,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -426,13 +426,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         },
@@ -474,13 +474,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -522,13 +522,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/portugal",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/portugal",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "portugal"
           ]
@@ -566,13 +566,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -611,13 +611,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -656,13 +656,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         }
@@ -699,13 +699,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -744,13 +744,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/portugal",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/portugal",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "portugal"
           ]
@@ -788,13 +788,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/iran/2024",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/iran/2024",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "iran",
             "2024"
@@ -833,13 +833,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages/portugal",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages/portugal",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages",
             "portugal"
           ]
@@ -877,13 +877,13 @@
           }
         },
         "url": {
-          "raw": "{{base_url}}/api/v1/minimum-interprofessional-wages",
+          "raw": "{{base_url}}/api/v2/minimum-interprofessional-wages",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "v1",
+            "v2",
             "minimum-interprofessional-wages"
           ]
         }

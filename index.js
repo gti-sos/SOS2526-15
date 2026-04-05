@@ -13,6 +13,7 @@ import {loadBackendSMB} from './src/routes/SMB.js';
 import {loadBackendYHX} from './src/routes/YHX.js';
 import {loadBackendJAM} from './src/routes/JAM.js';
 import { loadBackendJAMv2 } from "./src/routes/JAMv2.js";
+import { loadBackendSMBv2 } from './src/routes/SMBv2.js';
 //import {loadBackendJAM} from './src/routes/JAMv2.js';
 
 //app.use('/', express.static('public'));
@@ -24,6 +25,7 @@ loadBackendSMB(app);
 loadBackendYHX(app);
 loadBackendJAM(app);
 loadBackendJAMv2(app);
+loadBackendSMBv2(app);
 app.use(handler);
 
 app.listen(port, () => {
