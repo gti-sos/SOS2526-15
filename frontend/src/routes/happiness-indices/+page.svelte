@@ -152,8 +152,8 @@ async function buscarDatos() {
         <input type="number" placeholder="Puntuación"       bind:value={searchScore}  step="0.001"/>
         <input type="number" placeholder="PIB per cápita"   bind:value={searchGdp}    step="0.001"/>
         <input type="number" placeholder="Soporte Social"   bind:value={searchSocial} step="0.001"/>
-        <input type="number" placeholder="Límite"           bind:value={searchLimit} />
-        <input type="number" placeholder="Offset"           bind:value={searchOffset} />
+        <input type="number" placeholder="Desde el año..."           bind:value={searchLimit} />
+        <input type="number" placeholder="Hasta el año..."           bind:value={searchOffset} />
         <button onclick={buscarDatos}>Buscar</button>
         <button onclick={limpiarBusqueda}>Limpiar</button>
     </div>
