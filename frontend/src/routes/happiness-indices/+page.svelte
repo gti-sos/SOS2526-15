@@ -22,6 +22,8 @@ if (dev) url = 'http://localhost:8080' + url;
     let searchSocial = $state("");
     let searchLimit = $state("");
     let searchOffset = $state("");
+    let searchFrom = $state("");
+    let searchTo = $state("");
 
     async function getIndices() {
             let parametrosURL = window.location.search; 
@@ -92,6 +94,8 @@ async function buscarDatos() {
     let params = new URLSearchParams();
     if (searchCountry) params.append('country', searchCountry);
     if (searchYear)    params.append('year', searchYear);
+    if (searchFrom)    params.append('from', searchFrom);
+    if (searchTo)      params.append('to', searchTo);
     if (searchScore)   params.append('happiness_score', searchScore);
     if (searchGdp)     params.append('gdp_per_capita', searchGdp);
     if (searchSocial)  params.append('social_support', searchSocial);
