@@ -6,7 +6,6 @@ export function loadBackendJAMv2(app) {
 
     // 1. CARGAR DATOS INICIALES (Tus datos reales)
     app.get(`${API_URL_JAM_V2}/loadInitialData`, (req, res) => {
-        // ... (todo tu código de loadInitialData tal cual lo tienes) ...
         db.find({}, (err, docs) => {
             if (docs.length === 0) {
                 const initialData = [
@@ -41,7 +40,7 @@ export function loadBackendJAMv2(app) {
         });
     });
 
-    // 2. REDIRECCIÓN A LA DOCUMENTACIÓN DE POSTMAN (¡Movido aquí arriba!)
+    // 2. REDIRECCIÓN A LA DOCUMENTACIÓN DE POSTMAN
     app.get(`${API_URL_JAM_V2}/docs`, (req, res) => {
         res.redirect("https://documenter.getpostman.com/view/52395798/2sBXijJrgQ");
     });
@@ -62,6 +61,17 @@ export function loadBackendJAMv2(app) {
             query.year = parseInt(req.query.year);
         }
 
+        // 👇 AÑADIDO: Búsqueda por los decimales 👇
+        if (req.query.happiness_score) {
+            query.happiness_score = parseFloat(req.query.happiness_score);
+        }
+        if (req.query.gdp_per_capita) {
+            query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
+        }
+        if (req.query.social_support) {
+            query.social_support = parseFloat(req.query.social_support);
+        }
+
         let limit = parseInt(req.query.limit) || 0;
         let offset = parseInt(req.query.offset) || 0;
 
@@ -70,18 +80,20 @@ export function loadBackendJAMv2(app) {
             res.json(data.map(d => { delete d._id; return d; }));
         });
     });
+
     // 4. CREAR UNO NUEVO (POST)
     app.post(API_URL_JAM_V2, (req, res) => {
         const newData = req.body;
-            // Validación de campos obligatorios
-    if (!newData || !newData.country || !newData.year || 
-        newData.happiness_score === undefined || 
-        newData.gdp_per_capita === undefined || 
-        newData.social_support === undefined) {
-        return res.status(400).json({ message: "Faltan campos obligatorios" });
-    }
-    newData.year = parseInt(newData.year);
-    delete newData._id;
+        // Validación de campos obligatorios
+        if (!newData || !newData.country || !newData.year || 
+            newData.happiness_score === undefined || 
+            newData.gdp_per_capita === undefined || 
+            newData.social_support === undefined) {
+            return res.status(400).json({ message: "Faltan campos obligatorios" });
+        }
+        newData.year = parseInt(newData.year);
+        delete newData._id;
+        
         db.find({ country: newData.country, year: newData.year }, (err, docs) => {
             if (docs.length > 0) return res.sendStatus(409); 
             db.insert(newData, (err, saved) => {
