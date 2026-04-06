@@ -90,7 +90,8 @@
     }
 
     function mostrarMensaje(texto, color) {
-        mensaje = texto; mensajeColor = color;
+        mensaje = texto; 
+        mensajeColor = color;
         setTimeout(() => mensaje = "", 4000);
     }
 
@@ -98,15 +99,19 @@
 
     async function buscarDatos() {
         let params = new URLSearchParams();
+        
+        // Textos
         if (searchCountry) params.append('country', searchCountry);
-        if (searchYear)    params.append('year', searchYear);
-        if (searchFrom)    params.append('from', searchFrom);
-        if (searchTo)      params.append('to', searchTo);
-        if (searchScore)   params.append('happiness_score', searchScore);
-        if (searchGdp)     params.append('gdp_per_capita', searchGdp);
-        if (searchSocial)  params.append('social_support', searchSocial);
-        if (searchLimit)   params.append('limit', searchLimit);
-        if (searchOffset)  params.append('offset', searchOffset);
+        
+        // Números y decimales (comprobación estricta !== "" y != null)
+        if (searchYear !== "" && searchYear != null)     params.append('year', searchYear);
+        if (searchFrom !== "" && searchFrom != null)     params.append('from', searchFrom);
+        if (searchTo !== "" && searchTo != null)         params.append('to', searchTo);
+        if (searchScore !== "" && searchScore != null)   params.append('happiness_score', searchScore);
+        if (searchGdp !== "" && searchGdp != null)       params.append('gdp_per_capita', searchGdp);
+        if (searchSocial !== "" && searchSocial != null) params.append('social_support', searchSocial);
+        if (searchLimit !== "" && searchLimit != null)   params.append('limit', searchLimit);
+        if (searchOffset !== "" && searchOffset != null) params.append('offset', searchOffset);
 
         const query = params.toString() ? "?" + params.toString() : "";
         
@@ -187,9 +192,9 @@
             <button onclick={buscarDatos}>Buscar</button>
             <button onclick={limpiarBusqueda}>Limpiar</button>
         </div>
-        <div style="margin-bottom: 10px;">
-            <input type="number" placeholder="Desde el año..." bind:value={searchFrom} />
-            <input type="number" placeholder="Hasta el año..." bind:value={searchTo} />
+        <div style="margin-bottom: 10px; margin-top: 10px; display: flex; gap: 10px;">
+            <input type="number" placeholder="Desde el año..." bind:value={searchFrom} style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;"/>
+            <input type="number" placeholder="Hasta el año..." bind:value={searchTo} style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;"/>
         </div>
     </section>
 
