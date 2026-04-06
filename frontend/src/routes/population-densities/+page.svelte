@@ -72,6 +72,12 @@
         if (!Array.isArray(densities)) {
             densities = [densities];
         }
+        if (densities.length === 0) {
+            resultMensaje = "No se encontraron resultados para esta búsqueda.";
+            mensajeColor = "orange";
+        } else {
+            resultMensaje = ""; // Si encuentra datos, quitamos el mensaje para que quede limpio
+        }
       } else if (res.status === 404) {
         densities = [];
         resultMensaje = "No se encontraron resultados para esta búsqueda.";

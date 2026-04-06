@@ -66,7 +66,29 @@ test.describe('E2E Tests - Population Densities (YHX)', () => {
         await expect(page.locator('td', { hasText: 'TestLandia' })).not.toBeVisible();
     });
 
-    test('5. Debería borrar todos los recursos', async ({ page }) => {
+    test('5. Debería buscar y filtrar recursos', async ({ page }) => {
+        await page.goto(ROUTE);
+
+        // 1. Cargamos datos para asegurarnos de que tenemos qué buscar
+        await page.click('button:has-text("Cargar Datos Iniciales")');
+        await expect(page.locator('text=españa').first()).toBeVisible();
+
+        // 2. Buscamos 'alemania' rellenando el input del buscador
+        await page.fill('input[placeholder="Filtrar por país..."]', 'alemania');
+        await page.click('button:has-text("Buscar")');
+
+        // 3. Comprobamos que alemania está en la tabla y que españa ha desaparecido
+        await expect(page.locator('td', { hasText: 'alemania' }).first()).toBeVisible();
+        await expect(page.locator('td', { hasText: 'españa' }).first()).not.toBeVisible();
+
+        // 4. Limpiamos la búsqueda
+        await page.click('button:has-text("Limpiar Filtros")');
+
+        // 5. Comprobamos que españa vuelve a aparecer al estar la tabla sin filtros
+        await expect(page.locator('td', { hasText: 'españa' }).first()).toBeVisible();
+    });
+
+    test('6. Debería borrar todos los recursos', async ({ page }) => {
         await page.goto(ROUTE);
 
         // En Playwright, las alertas/confirms nativos del navegador se aceptan automáticamente por defecto,
