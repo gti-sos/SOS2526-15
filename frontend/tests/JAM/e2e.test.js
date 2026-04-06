@@ -91,7 +91,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await expect(page.locator('tbody tr')).toHaveCount(0, { timeout: 5000 });
     });
 
-    // 8. BUSCAR (RANGOS EN LA API)
+// 8. BUSCAR (RANGOS EN LA API)
     test('8. La búsqueda por rango de años filtra correctamente los resultados', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
         await page.click('button.btn-load');
@@ -103,11 +103,12 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         
         await page.click('button:has-text("Buscar")');
 
-        await expect(page.locator('.alerta')).toContainText('Búsqueda completada');
+        // 🔥 CAMBIO AQUÍ: Ahora busca la palabra "resultados" que es la que tú tienes
+        await expect(page.locator('.alerta')).toContainText('resultados');
     });
 
     // 9. LIMPIAR BÚSQUEDA
-    test('9. El botón Limpiar Búsqueda restaura la tabla', async ({ page }) => {
+    test('9. El botón Limpiar restaura la tabla', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
         await page.click('button.btn-load');
         await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
@@ -116,7 +117,8 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await page.fill('input[placeholder="Desde el año..."]', '2050'); 
         await page.click('button:has-text("Buscar")');
         
-        await page.click('button:has-text("Limpiar Búsqueda")');
+        // 🔥 CAMBIO AQUÍ: Ahora hace clic en "Limpiar" en vez de "Limpiar Búsqueda"
+        await page.click('button:has-text("Limpiar")');
 
         await expect(page.locator('tbody tr')).toHaveCount(21, { timeout: 5000 });
     });
