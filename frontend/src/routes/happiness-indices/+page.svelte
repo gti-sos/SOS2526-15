@@ -198,7 +198,7 @@ async function buscarDatos() {
 </main>
 
 <style>
-    /* Mismos estilos que tenías antes */
+    /* Estilos*/
     main { font-family: sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
     h1 { text-align: center; }
     .alerta { color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }
