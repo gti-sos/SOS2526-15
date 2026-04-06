@@ -2,19 +2,22 @@
     import { onMount } from 'svelte';
     import { dev } from '$app/environment';
     import Message from './Message.svelte';
+    
     let url = "/api/v2/happiness-indices"; 
-if (dev) url = 'http://localhost:8080' + url;
+    if (dev) url = 'http://localhost:8080' + url;
 
     let happinessIndices = $state([]);
     let mensaje = $state("");
     let mensajeColor = $state("gray");
 
+    // Variables para añadir
     let newCountry = $state("");
     let newYear = $state("");
     let newScore = $state("");
     let newGdp = $state("");
     let newSocial = $state("");
 
+    // Variables para buscar
     let searchCountry = $state("");
     let searchYear = $state("");
     let searchScore = $state("");
@@ -26,13 +29,14 @@ if (dev) url = 'http://localhost:8080' + url;
     let searchTo = $state("");
 
     async function getIndices() {
-            let parametrosURL = window.location.search; 
-            const res = await fetch(url + parametrosURL);
-            
-            if (res.ok) {
-                happinessIndices = await res.json();
-            }
+        let parametrosURL = window.location.search; 
+        const res = await fetch(url + parametrosURL);
+        
+        if (res.ok) {
+            happinessIndices = await res.json();
         }
+    }
+
     async function loadInitialData() {
         const res = await fetch(`${url}/loadInitialData`);
         if (res.status === 201) {
@@ -60,7 +64,8 @@ if (dev) url = 'http://localhost:8080' + url;
             mostrarMensaje("✅ ¡Añadido con éxito!", "green");
             getIndices();
         } else if (res.status === 409) {
-            mostrarMensaje("⚠️ Error: Ese país ya existe en ese año.", "orange");
+            // Error 409: Duplicado. Mostramos mensaje en rojo.
+            mostrarMensaje("❌ Error: Ese país ya existe en ese año.", "red");
         } else {
             mostrarMensaje("❌ Error: Revisa los datos.", "red");
         }
@@ -90,43 +95,63 @@ if (dev) url = 'http://localhost:8080' + url;
     }
 
     onMount(getIndices);
-async function buscarDatos() {
-    let params = new URLSearchParams();
-    if (searchCountry) params.append('country', searchCountry);
-    if (searchYear)    params.append('year', searchYear);
-    if (searchFrom)    params.append('from', searchFrom);
-    if (searchTo)      params.append('to', searchTo);
-    if (searchScore)   params.append('happiness_score', searchScore);
-    if (searchGdp)     params.append('gdp_per_capita', searchGdp);
-    if (searchSocial)  params.append('social_support', searchSocial);
-    if (searchLimit)   params.append('limit', searchLimit);
-    if (searchOffset)  params.append('offset', searchOffset);
 
-    const query = params.toString() ? "?" + params.toString() : "";
-    const res = await fetch(url + query);
+    async function buscarDatos() {
+        let params = new URLSearchParams();
+        if (searchCountry) params.append('country', searchCountry);
+        if (searchYear)    params.append('year', searchYear);
+        if (searchFrom)    params.append('from', searchFrom);
+        if (searchTo)      params.append('to', searchTo);
+        if (searchScore)   params.append('happiness_score', searchScore);
+        if (searchGdp)     params.append('gdp_per_capita', searchGdp);
+        if (searchSocial)  params.append('social_support', searchSocial);
+        if (searchLimit)   params.append('limit', searchLimit);
+        if (searchOffset)  params.append('offset', searchOffset);
 
-    if (res.ok) {
-        happinessIndices = await res.json();
-        mostrarMensaje(`✅ ${happinessIndices.length} resultados encontrados.`, "green");
-    } else {
-        happinessIndices = [];
-        mostrarMensaje("⚠️ No se encontraron datos.", "orange");
-    }
-}
+        const query = params.toString() ? "?" + params.toString() : "";
+        
+        // Sincroniza la URL con la búsqueda sin recargar la página
+        window.history.pushState({}, '', window.location.pathname + query);
+        
+        const res = await fetch(url + query);
 
-    // Esta función va FUERA de buscarDatos()
-    function limpiarBusqueda() {
-            searchFrom = "";
-            searchTo = "";
+        if (res.ok) {
+            happinessIndices = await res.json();
             
-            // Borramos el ?country=... de la barra de direcciones del navegador
-            window.history.pushState({}, '', window.location.pathname); 
-            
-            getIndices();
-            mostrarMensaje("🧹 Búsqueda limpiada. Mostrando todos los datos.", "gray");
+            // Comprobamos si la lista viene vacía a pesar del status 200
+            if (happinessIndices.length === 0) {
+                mostrarMensaje("⚠️ No se encontraron datos con esos filtros.", "orange");
+            } else {
+                mostrarMensaje(`✅ ${happinessIndices.length} resultados encontrados.`, "green");
+            }
+        } else if (res.status === 404) {
+            happinessIndices = [];
+            mostrarMensaje("⚠️ No se encontraron datos con esos filtros.", "orange");
+        } else {
+            happinessIndices = [];
+            mostrarMensaje("❌ Error al realizar la búsqueda.", "red");
         }
-</script>
+    }
 
+    function limpiarBusqueda() {
+        // Limpiamos todas las variables del buscador
+        searchCountry = "";
+        searchYear = "";
+        searchScore = "";
+        searchGdp = "";
+        searchSocial = "";
+        searchLimit = "";
+        searchOffset = "";
+        searchFrom = "";
+        searchTo = "";
+        
+        // Borramos los parámetros de la URL
+        window.history.pushState({}, '', window.location.pathname); 
+        
+        getIndices();
+        mostrarMensaje("🧹 Búsqueda limpiada. Mostrando todos los datos.", "gray");
+    }
+</script>
 
 <main>
     <h1>📊 Índices de Felicidad</h1>
@@ -148,24 +173,26 @@ async function buscarDatos() {
             <button class="btn-add" onclick={addIndex}>Añadir</button>
         </div>
     </section>
-<section style="margin-bottom: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
-    <h3>🔍 Buscar datos</h3>
-    <div class="inputs">
-        <input type="text"   placeholder="País"             bind:value={searchCountry} />
-        <input type="number" placeholder="Año"              bind:value={searchYear} />
-        <input type="number" placeholder="Puntuación"       bind:value={searchScore}  step="0.001"/>
-        <input type="number" placeholder="PIB per cápita"   bind:value={searchGdp}    step="0.001"/>
-        <input type="number" placeholder="Soporte Social"   bind:value={searchSocial} step="0.001"/>
-        <input type="number" placeholder="Limit."           bind:value={searchLimit} />
-        <input type="number" placeholder="Offset"           bind:value={searchOffset} />
-        <button onclick={buscarDatos}>Buscar</button>
-        <button onclick={limpiarBusqueda}>Limpiar</button>
-    </div>
-    <div style="margin-bottom: 10px;">
+
+    <section style="margin-bottom: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+        <h3>🔍 Buscar datos</h3>
+        <div class="inputs">
+            <input type="text"   placeholder="País"             bind:value={searchCountry} />
+            <input type="number" placeholder="Año"              bind:value={searchYear} />
+            <input type="number" placeholder="Puntuación"       bind:value={searchScore}  step="0.001"/>
+            <input type="number" placeholder="PIB per cápita"   bind:value={searchGdp}    step="0.001"/>
+            <input type="number" placeholder="Soporte Social"   bind:value={searchSocial} step="0.001"/>
+            <input type="number" placeholder="Limit."           bind:value={searchLimit} />
+            <input type="number" placeholder="Offset"           bind:value={searchOffset} />
+            <button onclick={buscarDatos}>Buscar</button>
+            <button onclick={limpiarBusqueda}>Limpiar</button>
+        </div>
+        <div style="margin-bottom: 10px;">
             <input type="number" placeholder="Desde el año..." bind:value={searchFrom} />
             <input type="number" placeholder="Hasta el año..." bind:value={searchTo} />
-    </div>
-</section>
+        </div>
+    </section>
+
     <table>
         <thead>
             <tr>
@@ -198,19 +225,19 @@ async function buscarDatos() {
 </main>
 
 <style>
-    /* Estilos*/
+    /* Estilos */
     main { font-family: sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
     h1 { text-align: center; }
-    .alerta { color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+    .alerta { color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-weight: bold;}
     .formulario { background: #f4f4f4; padding: 20px; margin-bottom: 20px; border-radius: 8px;}
     .inputs { display: flex; gap: 10px; flex-wrap: wrap; }
-    input { padding: 8px; border: 1px solid #ccc; }
+    input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ddd; padding: 12px; }
     th { background: #3498db; color: white; }
-    .btn-add { background: #27ae60; color: white; cursor: pointer; padding: 8px; border:none;}
-    .btn-edit { background: #f39c12; color: white; padding: 5px; text-decoration: none; border-radius:3px;}
-    .btn-delete { background: #e74c3c; color: white; padding: 5px; cursor: pointer; border:none; border-radius:3px;}
-    .btn-danger { background: #c0392b; color: white; padding: 15px; width: 100%; margin-top: 20px; cursor: pointer; border:none;}
-    .btn-load { background: #2980b9; color: white; padding: 10px; margin-bottom: 15px; border:none; cursor: pointer;}
+    .btn-add { background: #27ae60; color: white; cursor: pointer; padding: 8px 15px; border:none; border-radius: 4px;}
+    .btn-edit { background: #f39c12; color: white; padding: 6px 12px; text-decoration: none; border-radius: 3px;}
+    .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; cursor: pointer; border:none; border-radius: 3px;}
+    .btn-danger { background: #c0392b; color: white; padding: 15px; width: 100%; margin-top: 20px; cursor: pointer; border:none; border-radius: 4px; font-size: 16px;}
+    .btn-load { background: #2980b9; color: white; padding: 10px 15px; margin-bottom: 15px; border:none; cursor: pointer; border-radius: 4px;}
 </style>
