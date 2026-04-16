@@ -5,7 +5,7 @@
     // Rutas de las 3 APIs
     let API_JAM = "/api/v2/happiness-indices";
     let API_YHX = "/api/v2/population-densities"; 
-    let API_SMB = "/api/v2/minimum-wages"; 
+    let API_SMB = "/api/v2/minimum-interprofessional-wages"; 
 
     if (dev) {
         API_JAM = 'http://localhost:8080' + API_JAM;
@@ -33,11 +33,9 @@
             const dataYHX = await fetchSafe(API_YHX);
             const dataSMB = await fetchSafe(API_SMB);
 
-            // 🌟 EL DICCIONARIO MÁGICO 🌟
-            // Mapeamos los países que tienen datos en al menos 2 o 3 de vuestras APIs
             const countriesMap = [
                 { label: "España", jam: "spain", yhx: "españa", smb: "spain" },
-                { label: "Alemania", jam: "germany", yhx: "alemania", smb: null },
+                { label: "Alemania", jam: "germany", yhx: "alemania", smb: "germany" },
                 { label: "Estados Unidos", jam: "united_states", yhx: null, smb: "united states" }
             ];
 
@@ -58,7 +56,7 @@
                 
                 // Debéis mirar que he puesto el nombre de vuestro dato bien:
                 densityData.push(yhx ? (yhx.density || yhx.densidad || yhx.population_density || 0) : 0); 
-                wageData.push(smb ? (smb.salario || smb.minimum_wage || smb.salario_usd || 0) : 0); 
+                wageData.push(smb ? (smb.nmw_on_dollar || 0) : 0); 
             });
 
             renderChart(labels, happinessData, densityData, wageData);

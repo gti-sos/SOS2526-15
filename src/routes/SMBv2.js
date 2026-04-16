@@ -17,7 +17,8 @@ export function loadBackendSMBv2(app){
         { country: "spain", date: 2025, national_currency_minimum_wage: 1381.00, nmw_on_dollar: 1435.00, percentage_change: -0.02 },
         { country: "spain", date: 2024, national_currency_minimum_wage: 1381.00, nmw_on_dollar: 1461.90, percentage_change: 0 },
         { country: "canada", date: 2025, national_currency_minimum_wage: 2872.10, nmw_on_dollar: 1994.50, percentage_change: 0.81 },
-        { country: "portugal", date: 2026, national_currency_minimum_wage: 1073.00, nmw_on_dollar: 1260.80, percentage_change: 5.71 }
+        { country: "portugal", date: 2026, national_currency_minimum_wage: 1073.00, nmw_on_dollar: 1260.80, percentage_change: 5.71 },
+        { country: "germany", date: 2026, national_currency_minimum_wage: 2343.0, nmw_on_dollar: 2753.0, percentage_change: 8.42 }
     ];
     const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
 
