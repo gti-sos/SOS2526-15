@@ -25,7 +25,7 @@
 
     <div class="equipo">
         <section class="tarjeta">
-            <h3>Javier Arroyo</h3>
+            <h3>Javier Arroyo Marcos</h3>
             <p><strong>Fuente de datos:</strong> Índices de Felicidad (<em>happiness-indices</em>)</p>
             <ul>
                 <li>🖥️ <a href="/happiness-indices">Interfaz Visual (Front-end)</a></li>

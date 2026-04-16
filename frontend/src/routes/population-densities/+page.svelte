@@ -42,6 +42,12 @@
   let searchPopulation = $state("");
   // @ts-ignore
   let searchPercentageChange = $state("");
+  
+  // Nuevas variables para PAGINACIÓN
+  // @ts-ignore
+  let searchLimit = $state("");
+  // @ts-ignore
+  let searchOffset = $state("");
 
   // ---------------- FUNCIONES ----------------
 
@@ -55,6 +61,10 @@
     if (searchDensity) query.append("density", searchDensity);
     if (searchPopulation) query.append("population", searchPopulation);
     if (searchPercentageChange) query.append("percentage_change", searchPercentageChange);
+    
+    // Añadimos limit y offset a la query
+    if (searchLimit) query.append("limit", searchLimit);
+    if (searchOffset) query.append("offset", searchOffset);
 
     // Actualizamos la URL visible del navegador sin recargar la página
     goto(`?${query.toString()}`, { replaceState: true, keepFocus: true });
@@ -67,11 +77,21 @@
     try {
       const res = await fetch(fetchUrl, { method: "GET" });
       if (res.ok) {
-        densities = await res.json();
+        let data = await res.json();
         // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array
-        if (!Array.isArray(densities)) {
-            densities = [densities];
+        if (!Array.isArray(data)) {
+            data = [data];
         }
+        
+        densities = data;
+
+        if (densities.length === 0) {
+            resultMensaje = "No se encontraron resultados para esta búsqueda.";
+            mensajeColor = "orange";
+        } else {
+            resultMensaje = ""; // Si encuentra datos, quitamos el mensaje para que quede limpio
+        }
+
       } else if (res.status === 404) {
         densities = [];
         resultMensaje = "No se encontraron resultados para esta búsqueda.";
@@ -90,6 +110,7 @@
     searchCountry = ""; searchFrom = "";
     searchTo = "";
     searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
+    searchLimit = ""; searchOffset = ""; // Limpiamos también la paginación
     getDensities();
     // Al llamar a getDensities con todo vacío, la URL también se limpiará
   }
@@ -189,6 +210,8 @@
     searchDensity = params.get("density") || "";
     searchPopulation = params.get("population") || "";
     searchPercentageChange = params.get("percentage_change") || "";
+    searchLimit = params.get("limit") || "";
+    searchOffset = params.get("offset") || "";
 
     getDensities();
   });
@@ -222,7 +245,7 @@
       </div>
     </div>
     
-    <div class="row g-2 mb-3">
+    <div class="row g-2 mb-2">
       <div class="col-md-4">
         <input type="number" step="0.1" bind:value={searchDensity} placeholder="Filtrar densidad..." class="form-control form-control-sm" />
       </div>
@@ -232,6 +255,15 @@
       </div>
       <div class="col-md-4">
         <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="Filtrar % cambio..." class="form-control form-control-sm" />
+      </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <input type="number" bind:value={searchLimit} placeholder="Límite de resultados (Limit)..." class="form-control form-control-sm" />
+      </div>
+      <div class="col-md-6">
+        <input type="number" bind:value={searchOffset} placeholder="Saltar resultados (Offset)..." class="form-control form-control-sm" />
       </div>
     </div>
 
