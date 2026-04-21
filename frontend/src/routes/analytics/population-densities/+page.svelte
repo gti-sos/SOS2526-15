@@ -1,8 +1,8 @@
 <script>
     import { onMount } from 'svelte';
     import { dev } from '$app/environment';
+    import { Button } from '@sveltestrap/sveltestrap';
 
-    // Usamos la ruta de tu API
     let API = '/api/v1/population-densities';
     if (dev) {
         API = 'http://localhost:8080' + API;
@@ -17,13 +17,13 @@
             if (!res.ok) {
                 throw new Error("Error al obtener los datos de la API.");
             }
-            const data = await res.json();
+            let data = await res.json();
+
+            // 1. ORDENAR DATOS POR AÑO (Ascendente)
+            data.sort((a, b) => a.year - b.year);
 
             // Preparamos los datos para Highcharts
-            // Eje X: El nombre del país y el año (ej: "España (2020)")
             const categorias = data.map(d => `${d.country} (${d.year})`);
-            
-            // Eje Y: Los valores numéricos
             const densidades = data.map(d => d.density);
             const poblaciones = data.map(d => d.population);
 
@@ -36,36 +36,27 @@
     }
 
     function renderChart(categorias, densidades, poblaciones) {
-        // Importamos Highcharts de forma dinámica para que no de problemas con SvelteKit
         import('highcharts').then(Highcharts => {
             Highcharts.default.chart(chartContainer, {
-                chart: { 
-                    type: 'area' // ¡AQUÍ ESTÁ EL TIPO! Cámbialo a 'bar', 'spline' o 'scatter' si otro compañero ya usa 'area'
-                },
-                title: { 
-                    text: 'Análisis Individual: Densidad y Población' 
-                },
-                subtitle: {
-                    text: 'Datos obtenidos de /api/v1/population-densities'
-                },
+                chart: { type: 'area' },
+                title: { text: 'Análisis Individual: Densidad y Población' },
+                subtitle: { text: 'Datos ordenados cronológicamente' },
                 xAxis: {
                     categories: categorias,
                     crosshair: true
                 },
                 yAxis: [
-                    { // Eje Y principal (Izquierda) para Densidad
+                    { 
                         title: { text: 'Densidad', style: { color: '#8e44ad' } },
                         labels: { style: { color: '#8e44ad' } }
                     },
-                    { // Eje Y secundario (Derecha) para Población
+                    { 
                         title: { text: 'Población', style: { color: '#f39c12' } },
                         labels: { style: { color: '#f39c12' } },
-                        opposite: true // Lo ponemos a la derecha para que no se pisen
+                        opposite: true 
                     }
                 ],
-                tooltip: { 
-                    shared: true 
-                },
+                tooltip: { shared: true },
                 series: [
                     { 
                         name: 'Densidad de Población', 
@@ -93,7 +84,13 @@
 </script>
 
 <main class="container mt-4">
-    <h2 class="mb-4">📊 Analítica Individual de YHX</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 Analítica Individual de YHX</h2>
+        
+        <a href="/population-densities" class="btn btn-outline-primary">
+            ⚙️ Gestionar Datos (Añadir/Quitar)
+        </a>
+    </div>
 
     {#if mensajeError}
         <div class="alert alert-danger" role="alert">
