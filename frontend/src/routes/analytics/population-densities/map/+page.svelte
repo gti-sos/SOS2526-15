@@ -21,7 +21,7 @@
         "estados unidos": [37.0902, -95.7129],
         "china": [35.8617, 104.1954],
         "japon": [36.2048, 138.2529],
-        "testlandia": [0, 0] // Para que tus tests E2E no den problemas si pasan por aquí
+        "ucrania": [48.3794, 31.1656]
     };
 
     async function loadMap() {
