@@ -4,7 +4,7 @@
 
     // Rutas de las 3 APIs
     let API_JAM = "/api/v2/happiness-indices";
-    let API_YHX = "/api/v2/population-densities"; 
+    let API_YHX = "/api/v1/population-densities"; 
     let API_SMB = "/api/v2/minimum-interprofessional-wages"; 
 
     if (dev) {
