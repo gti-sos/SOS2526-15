@@ -20,7 +20,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
     test('2. El botón Cargar Datos Iniciales carga datos y los muestra en la tabla', async ({ page }) => {
         await page.goto(`${BASE_URL}/happiness-indices`);
         await page.click('button.btn-load');
-        await expect(page.locator('tbody tr')).toHaveCount(21, { timeout: 10000 });
+        await expect(page.locator('tbody tr')).toHaveCount(80, { timeout: 10000 });
     });
 
     // 3. CREAR (POST) Y RECARGA AUTOMÁTICA
@@ -120,7 +120,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         // 🔥 CAMBIO AQUÍ: Ahora hace clic en "Limpiar" en vez de "Limpiar Búsqueda"
         await page.click('button:has-text("Limpiar")');
 
-        await expect(page.locator('tbody tr')).toHaveCount(21, { timeout: 5000 });
+        await expect(page.locator('tbody tr')).toHaveCount(80, { timeout: 5000 });
     });
     // 10. BÚSQUEDA POR URL: PAÍS
     test('10. Acceder con ?country=spain en la URL filtra automáticamente', async ({ page }) => {
@@ -129,9 +129,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
 
         // Navegamos directamente a la URL con el parámetro
         await page.goto(`${BASE_URL}/happiness-indices?country=spain`);
-
-        // Comprobamos que solo carga España (debería haber 1 fila para 2023)
-        await expect(page.locator('tbody tr')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('tbody tr')).toHaveCount(4, { timeout: 10000 });
         await expect(page.locator('tbody')).toContainText('spain');
     });
 
@@ -140,9 +138,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await fetch(`${BASE_URL}/api/v2/happiness-indices/loadInitialData`);
 
         await page.goto(`${BASE_URL}/happiness-indices?year=2022`);
-
-        // Comprobamos que solo sale el dato de 2022 (finlandia)
-        await expect(page.locator('tbody tr')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('tbody tr')).toHaveCount(20, { timeout: 10000 });
         await expect(page.locator('tbody')).toContainText('2022');
     });
 
@@ -151,9 +147,7 @@ test.describe('JAM - Happiness Indices Frontend E2E', () => {
         await fetch(`${BASE_URL}/api/v2/happiness-indices/loadInitialData`);
 
         await page.goto(`${BASE_URL}/happiness-indices?from=2020&to=2022`);
-
-        // Comprobamos que funciona el rango (solo debe salir finlandia 2022)
-        await expect(page.locator('tbody tr')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('tbody tr')).toHaveCount(60, { timeout: 10000 });
         await expect(page.locator('tbody')).not.toContainText('2023'); // Aseguramos que no se cuela ninguno de 2023
     });
 });
