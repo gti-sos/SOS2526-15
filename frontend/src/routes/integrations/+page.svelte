@@ -111,8 +111,8 @@
     // --- 6. EXT 2: GitHub (OAuth + C3.js - Donut) ---
     async function loadGitHub() {
         clearContainers();
-        const username = "tu_usuario"; // <--- PON TU USUARIO REAL
-        const token = "ghp_TU_TOKEN";  // <--- PON TU TOKEN REAL
+        const username = import.meta.env.VITE_GITHUB_USERNAME || "JavierArroyoMarcos"; 
+        const token = import.meta.env.VITE_GITHUB_TOKEN;
         const res = await fetch(`https://api.github.com/users/${username}`, {
             headers: { "Authorization": `token ${token}` }
         });
