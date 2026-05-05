@@ -180,17 +180,23 @@
             <p class="small text-muted">Librería: <b>ApexCharts</b> | Tipo: <b>Radial Bar</b></p>
             <div id="chartG16"></div>
 
-        {:else if currentIntegration === "G18"}
-            <h3>🍎 Food Supply (G18)</h3>
-            <p class="small text-muted">Método: <b>HTML Table</b> (RESTful Fetch)</p>
-            <table class="table table-hover mt-3">
-                <thead class="table-dark"><tr><th>País</th><th>Año</th><th>Kcal/Persona/Día</th></tr></thead>
-                <tbody>
-                    {#each externalData.slice(0, 10) as item}
-                        <tr><td>{item.country}</td><td>{item.year}</td><td>{item.food_supply_kcal}</td></tr>
-                    {/each}
-                </tbody>
-            </table>
+           {:else if currentIntegration === "G18"}
+        <h3>🍎 Food Supply (G18)</h3>
+        <p class="small text-muted">Método: <b>HTML Table</b> (RESTful Fetch)</p>
+        <table class="table table-hover mt-3">
+            <thead class="table-dark">
+                <tr><th>País</th><th>Año</th><th>Kcal/Persona/Día</th></tr>
+            </thead>
+            <tbody>
+                {#each externalData.slice(0, 10) as item}
+                    <tr>
+                        <td>{item.country}</td>
+                        <td>{item.year}</td>
+                        <td>{item.food_supply_kcal}</td>
+                    </tr>
+                {/each} 
+            </tbody>
+        </table>
 
         {:else if currentIntegration === "EXT_PROXY"}
             <h3>🌍 Rest Countries (Proxy)</h3>
@@ -217,7 +223,7 @@
                         <div><b>{show.name}</b> <span class="badge bg-secondary ms-2">{show.language}</span></div>
                         <span class="text-muted small">{show.type}</span>
                     </li>
-                {each}
+                {/each}
             </ul>
         {/if}
     </div>
