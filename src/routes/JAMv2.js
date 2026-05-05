@@ -114,29 +114,17 @@ export function loadBackendJAMv2(app) {
     // 3. LISTAR TODOS (GET) CON BÚSQUEDA AVANZADA
     app.get(API_URL_JAM_V2, (req, res) => {
         let query = {};
-        
-        // Búsqueda por país exacto
         if (req.query.country) query.country = req.query.country;
-        
-        // Búsqueda por rango de años (from / to) o año exacto
         if (req.query.from || req.query.to) {
             query.year = {};
-            if (req.query.from) query.year.$gte = parseInt(req.query.from); // Mayor o igual que 'from'
-            if (req.query.to) query.year.$lte = parseInt(req.query.to);     // Menor o igual que 'to'
+            if (req.query.from) query.year.$gte = parseInt(req.query.from);
+            if (req.query.to) query.year.$lte = parseInt(req.query.to);
         } else if (req.query.year) {
             query.year = parseInt(req.query.year);
         }
-
-        // 👇 AÑADIDO: Búsqueda por los decimales 👇
-        if (req.query.happiness_score) {
-            query.happiness_score = parseFloat(req.query.happiness_score);
-        }
-        if (req.query.gdp_per_capita) {
-            query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
-        }
-        if (req.query.social_support) {
-            query.social_support = parseFloat(req.query.social_support);
-        }
+        if (req.query.happiness_score) query.happiness_score = parseFloat(req.query.happiness_score);
+        if (req.query.gdp_per_capita) query.gdp_per_capita = parseFloat(req.query.gdp_per_capita);
+        if (req.query.social_support) query.social_support = parseFloat(req.query.social_support);
 
         let limit = parseInt(req.query.limit) || 0;
         let offset = parseInt(req.query.offset) || 0;
@@ -150,7 +138,6 @@ export function loadBackendJAMv2(app) {
     // 4. CREAR UNO NUEVO (POST)
     app.post(API_URL_JAM_V2, (req, res) => {
         const newData = req.body;
-        // Validación de campos obligatorios
         if (!newData || !newData.country || !newData.year || 
             newData.happiness_score === undefined || 
             newData.gdp_per_capita === undefined || 
@@ -159,7 +146,6 @@ export function loadBackendJAMv2(app) {
         }
         newData.year = parseInt(newData.year);
         delete newData._id;
-        
         db.find({ country: newData.country, year: newData.year }, (err, docs) => {
             if (docs.length > 0) return res.sendStatus(409); 
             db.insert(newData, (err, saved) => {
@@ -199,4 +185,42 @@ export function loadBackendJAMv2(app) {
             else res.sendStatus(404);
         });
     });
+
+    // ─────────────────────────────────────────────
+    // PROXIES JAM — añadidos para D03.B
+    // ─────────────────────────────────────────────
+
+    // PROXY 1: Rest Countries (API externa pública)
+    // Frontend lo llama en: GET /api/v2/happiness-indices/proxy-countries
+    app.get(`${API_URL_JAM_V2}/proxy-countries`, async (req, res) => {
+        try {
+            const response = await fetch('https://restcountries.com/v3.1/all?fields=name,region,population');
+            if (!response.ok) throw new Error(`restcountries devolvió ${response.status}`);
+            const data = await response.json();
+            res.json(data);
+        } catch (error) {
+            console.error('proxy-countries error:', error.message);
+            res.status(502).json({ error: 'Error en el proxy de países' });
+        }
+    });
+
+    // PROXY 2: GitHub API (token seguro en servidor via variable de entorno)
+    // Frontend lo llama en: GET /api/v2/happiness-indices/proxy-github
+    app.get(`${API_URL_JAM_V2}/proxy-github`, async (req, res) => {
+        try {
+            const GITHUB_USERNAME = 'JavierArroyoMarcos';
+            const headers = { 'User-Agent': 'SOS2526-15' };
+            if (process.env.GITHUB_TOKEN) {
+                headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+            }
+            const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, { headers });
+            if (!response.ok) throw new Error(`GitHub devolvió ${response.status}`);
+            const data = await response.json();
+            res.json(data);
+        } catch (error) {
+            console.error('proxy-github error:', error.message);
+            res.status(502).json({ error: 'Error en el proxy de GitHub' });
+        }
+    });
+
 }
