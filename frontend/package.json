@@ -24,7 +24,12 @@
 	},
 	"dependencies": {
 		"@sveltestrap/sveltestrap": "^7.1.0",
+		"apexcharts": "^5.10.6",
+		"billboard.js": "^3.18.0",
 		"bootstrap": "^5.3.8",
+		"c3": "^0.7.20",
+		"chart.js": "^4.5.1",
+		"echarts": "^6.0.0",
 		"highcharts": "^12.6.0"
 	}
 }

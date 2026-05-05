@@ -7,10 +7,10 @@
     import bb, { gauge } from 'billboard.js';
     import c3 from 'c3';
 
-    let currentIntegration = "MENU";
-    let chartInstance = null; 
-    let githubData = null;
-    let externalData = []; 
+   let currentIntegration = $state("MENU");
+   let chartInstance = null;       
+    let githubData = $state(null);
+    let externalData = $state([]);
 
     // Limpiador para que las gráficas no se solapen al cambiar de pestaña
     function clearContainers() {
@@ -147,13 +147,13 @@
     <h1 class="text-center mb-4">🧩 Centro de Integraciones (JAM)</h1>
 
     <div class="row g-2 justify-content-center mb-5">
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" on:click={loadG14}>☄️ Meteoritos (G14)</button>
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" on:click={loadG10}>🦠 Pandemias (G10)</button>
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" on:click={loadG16}>⚡ EV Sales (G16)</button>
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" on:click={loadG18}>🍎 Food (G18)</button>
-        <button class="btn btn-sm btn-outline-success col-auto m-1" on:click={loadProxy}>🌍 Países (Proxy)</button>
-        <button class="btn btn-sm btn-outline-dark col-auto m-1" on:click={loadGitHub}>🐙 GitHub (OAuth)</button>
-        <button class="btn btn-sm btn-outline-danger col-auto m-1" on:click={loadTV}>🎬 TV Series (EXT)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={loadG14}>☄️ Meteoritos (G14)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={loadG10}>🦠 Pandemias (G10)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={loadG16}>⚡ EV Sales (G16)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={loadG18}>🍎 Food (G18)</button>
+        <button class="btn btn-sm btn-outline-success col-auto m-1" onclick={loadProxy}>🌍 Países (Proxy)</button>
+        <button class="btn btn-sm btn-outline-dark col-auto m-1" onclick={loadGitHub}>🐙 GitHub (OAuth)</button>
+        <button class="btn btn-sm btn-outline-danger col-auto m-1" onclick={loadTV}>🎬 TV Series (EXT)</button>
     </div>
 
     <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
