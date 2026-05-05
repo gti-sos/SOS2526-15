@@ -1,1 +1,1 @@
-export const ssr = false;git 
+export const ssr = false;
