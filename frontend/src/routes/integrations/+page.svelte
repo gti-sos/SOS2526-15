@@ -141,6 +141,117 @@
             currentIntegration = "EXT_3";
         }
     }
+
+    // --- VARIABLES PARA DATOS YHX ---
+    let g26Data = $state([]);
+
+    // --- FUNCIONES DE CARGA Y RENDERIZADO ---
+
+    // 1. SOS - G26 (Solo Texto/HTML)
+    async function loadG26() {
+        currentIntegration = "YHX_G26";
+        clearContainers();
+        const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/");
+        if (res.ok) g26Data = await res.json();
+    }
+
+    // 2. SOS - G18 (Chart.js - polarArea)
+    async function loadG18() {
+        currentIntegration = "YHX_G18";
+        clearContainers();
+        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
+        if (res.ok) {
+            const data = await res.json();
+            setTimeout(() => {
+                const ctx = document.getElementById('chartG18').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: data.slice(0, 6).map(d => d.country),
+                        datasets: [{ label: 'Producción', data: data.slice(0, 6).map(d => d.production) }]
+                    }
+                });
+            }, 100);
+        }
+    }
+
+    // 3. SOS - G27 (ECharts - scatter)
+    async function loadG27() {
+        currentIntegration = "YHX_G27";
+        clearContainers();
+        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams");
+        if (res.ok) {
+            const data = await res.json();
+            setTimeout(() => {
+                const chartDom = document.getElementById('chartG27');
+                chartInstance = echarts.init(chartDom);
+                chartInstance.setOption({
+                    xAxis: { type: 'category', data: data.slice(0,10).map(d => d.dam) },
+                    yAxis: { type: 'value' },
+                    series: [{ type: 'scatter', symbolSize: 20, data: data.slice(0,10).map(d => d.capacity) }]
+                });
+            }, 100);
+        }
+    }
+
+    // 4. EXT 1 - FakeStore (ApexCharts - radar)
+    async function loadExt1() {
+        currentIntegration = "YHX_EXT1";
+        clearContainers();
+        const res = await fetch("https://fakestoreapi.com/products");
+        if (res.ok) {
+            const data = await res.json();
+            setTimeout(() => {
+                const options = {
+                    chart: { type: 'radar', height: 400 },
+                    series: [{ name: 'Precio', data: data.slice(0, 5).map(d => d.price) }],
+                    labels: data.slice(0, 5).map(d => d.title.substring(0, 10) + '...')
+                };
+                chartInstance = new ApexCharts(document.querySelector("#chartEXT1_YHX"), options);
+                chartInstance.render();
+            }, 100);
+        }
+    }
+
+    // 5. EXT 2 - Rick and Morty (Billboard.js - bar)
+    async function loadExt2() {
+        currentIntegration = "YHX_EXT2";
+        clearContainers();
+        const res = await fetch("https://rickandmortyapi.com/api/character");
+        if (res.ok) {
+            const data = await res.json();
+            setTimeout(() => {
+                chartInstance = bb.generate({
+                    data: {
+                        columns: [
+                            ["Episodios", ...data.results.slice(0, 5).map(d => d.episode.length)]
+                        ],
+                        type: "bar"
+                    },
+                    axis: { x: { type: "category", categories: data.results.slice(0, 5).map(d => d.name) } },
+                    bindto: "#chartEXT2_YHX"
+                });
+            }, 100);
+        }
+    }
+
+    // 6. EXT 3 (PROXY) - Countries (C3.js - pie)
+    async function loadExt3Proxy() {
+        currentIntegration = "YHX_EXT3";
+        clearContainers();
+        // Fíjate que llamamos a NUESTRO backend, no a la API externa directamente
+        const res = await fetch("/api/proxy-countries");
+        if (res.ok) {
+            const data = await res.json();
+            setTimeout(() => {
+                const columns = data.slice(0, 5).map(d => [d.name.common, d.population]);
+                chartInstance = c3.generate({
+                    data: { columns: columns, type: 'pie' },
+                    bindto: '#chartEXT3_YHX'
+                });
+            }, 100);
+        }
+    }
 </script>
 
 <main class="container py-4">
@@ -154,6 +265,17 @@
         <button class="btn btn-sm btn-outline-success col-auto m-1" onclick={loadProxy}>🌍 Países (Proxy)</button>
         <button class="btn btn-sm btn-outline-dark col-auto m-1" onclick={loadGitHub}>🐙 GitHub (OAuth)</button>
         <button class="btn btn-sm btn-outline-danger col-auto m-1" onclick={loadTV}>🎬 TV Series (EXT)</button>
+    </div>
+
+    <h1 class="text-center mb-4">🧩 Centro de Integraciones (YHX)</h1>
+
+    <div class="row g-2 justify-content-center mb-5">
+        <button class="btn btn-outline-primary m-1" onclick={loadG26}>Grupo 26 (Texto)</button>
+        <button class="btn btn-outline-primary m-1" onclick={loadG18}>Grupo 18 (Chart.js)</button>
+        <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
+        <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
+        <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Billboard)</button>
+        <button class="btn btn-outline-danger m-1" onclick={loadExt3Proxy}>Países PROXY (C3.js)</button>
     </div>
 
     <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
@@ -180,23 +302,23 @@
             <p class="small text-muted">Librería: <b>ApexCharts</b> | Tipo: <b>Radial Bar</b></p>
             <div id="chartG16"></div>
 
-           {:else if currentIntegration === "G18"}
-        <h3>🍎 Food Supply (G18)</h3>
-        <p class="small text-muted">Método: <b>HTML Table</b> (RESTful Fetch)</p>
-        <table class="table table-hover mt-3">
-            <thead class="table-dark">
-                <tr><th>País</th><th>Año</th><th>Kcal/Persona/Día</th></tr>
-            </thead>
-            <tbody>
-                {#each externalData.slice(0, 10) as item}
-                    <tr>
-                        <td>{item.country}</td>
-                        <td>{item.year}</td>
-                        <td>{item.food_supply_kcal}</td>
-                    </tr>
-                {/each} 
-            </tbody>
-        </table>
+        {:else if currentIntegration === "G18"}
+            <h3>🍎 Food Supply (G18)</h3>
+            <p class="small text-muted">Método: <b>HTML Table</b> (RESTful Fetch)</p>
+            <table class="table table-hover mt-3">
+                <thead class="table-dark">
+                    <tr><th>País</th><th>Año</th><th>Kcal/Persona/Día</th></tr>
+                </thead>
+                <tbody>
+                    {#each externalData.slice(0, 10) as item}
+                        <tr>
+                            <td>{item.country}</td>
+                            <td>{item.year}</td>
+                            <td>{item.food_supply_kcal}</td>
+                        </tr>
+                    {/each} 
+                </tbody>
+            </table>
 
         {:else if currentIntegration === "EXT_PROXY"}
             <h3>🌍 Rest Countries (Proxy)</h3>
@@ -225,6 +347,37 @@
                     </li>
                 {/each}
             </ul>
+        {:else if currentIntegration === "YHX_G26"}
+            <h3>📝 Grupo 26: Rankings Deportivos</h3>
+            <p class="small text-muted">Requisito: Uso textual en HTML puro</p>
+            <Table striped bordered>
+                <thead><tr><th>País</th><th>Año</th><th>Puntos</th></tr></thead>
+                <tbody>
+                    {#each g26Data.slice(0, 10) as item}
+                        <tr><td>{item.country}</td><td>{item.year}</td><td>{item.points}</td></tr>
+                    {/each}
+                </tbody>
+            </Table>
+
+        {:else if currentIntegration === "YHX_G18"}
+            <h3>🌾 Grupo 18: Cereales</h3>
+            <div style="width: 100%; max-width: 600px; margin: auto;"><canvas id="chartG18"></canvas></div>
+
+        {:else if currentIntegration === "YHX_G27"}
+            <h3>💧 Grupo 27: Presas</h3>
+            <div id="chartG27" style="width: 100%; height: 400px;"></div>
+
+        {:else if currentIntegration === "YHX_EXT1"}
+            <h3>🛍️ Fake Store API</h3>
+            <div id="chartEXT1_YHX"></div>
+
+        {:else if currentIntegration === "YHX_EXT2"}
+            <h3>👽 Rick and Morty API</h3>
+            <div id="chartEXT2_YHX"></div>
+
+        {:else if currentIntegration === "YHX_EXT3"}
+            <h3>🌍 REST Countries (Vía Proxy)</h3>
+            <div id="chartEXT3_YHX"></div>
         {/if}
     </div>
 </main>
