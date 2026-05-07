@@ -241,6 +241,35 @@
             }, 100);
         }
     }
+    // 6. EXT 3 PROXY - Países con proxy propio (C3.js - Bar)
+    async function loadExt3Proxy() {
+        clearContainers();
+        const res = await fetch("/api/v2/happiness-indices/proxy-countries");
+        if (res.ok) {
+            const countries = await res.json();
+            // Contamos países por región
+            const regionCount = {};
+            countries.forEach(c => {
+                const r = c.region || "Desconocida";
+                regionCount[r] = (regionCount[r] || 0) + 1;
+            });
+            const columns = Object.entries(regionCount).map(([region, count]) => [region, count]);
+
+            currentIntegration = "YHX_EXT3";
+            setTimeout(() => {
+                c3.generate({
+                    bindto: '#chartEXT3_YHX',
+                    data: {
+                        columns: columns,
+                        type: 'bar'  // Gráfico de barras (no choca con el donut de GitHub)
+                    },
+                    bar: {
+                        width: { ratio: 0.5 } // barras más estrechas para que quepan etiquetas
+                    }
+                });
+            }, 100);
+        }
+    }
 </script>
 
 <main class="container py-4">
