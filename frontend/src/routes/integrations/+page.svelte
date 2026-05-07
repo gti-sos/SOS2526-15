@@ -156,7 +156,7 @@
     }
 
     // 2. SOS - G18 (Chart.js - polarArea)
-    async function loadG18() {
+    async function loadG18_2() {
         currentIntegration = "YHX_G18";
         clearContainers();
         const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
@@ -271,7 +271,7 @@
 
     <div class="row g-2 justify-content-center mb-5">
         <button class="btn btn-outline-primary m-1" onclick={loadG26}>Grupo 26 (Texto)</button>
-        <button class="btn btn-outline-primary m-1" onclick={loadG18}>Grupo 18 (Chart.js)</button>
+        <button class="btn btn-outline-primary m-1" onclick={loadG18_2}>Grupo 18 (Chart.js)</button>
         <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Billboard)</button>
