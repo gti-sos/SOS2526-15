@@ -15,7 +15,9 @@
     // Limpiador para que las gráficas no se solapen al cambiar de pestaña
     function clearContainers() {
         if (chartInstance) chartInstance.destroy();
-        const containers = ['chartG10', 'chartG16', 'chartEXT1', 'chartGITHUB'];
+        const containers = ['chartG10', 'chartG16', 'chartEXT1', 'chartGITHUB', 
+                        'chartG14', 'chartG18', 'chartG27', 'chartEXT1_YHX', 
+                        'chartEXT2_YHX', 'chartEXT3_YHX'];
         containers.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
@@ -149,17 +151,18 @@
 
     // 1. SOS - G26 (Solo Texto/HTML)
     async function loadG26() {
-        currentIntegration = "YHX_G26";
-        clearContainers();
-        const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/");
-        if (res.ok) g26Data = await res.json();
-    }
+    currentIntegration = "YHX_G26";
+    clearContainers();
+    // usa el endpoint que carga los datos iniciales
+    const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/loadInitialData");
+    if (res.ok) g26Data = await res.json();
+}
 
     // 2. SOS - G18 (Chart.js - polarArea)
     async function loadG18_2() {
         currentIntegration = "YHX_G18";
         clearContainers();
-        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
+        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions/loadInitialData");
         if (res.ok) {
             const data = await res.json();
             setTimeout(() => {
@@ -168,7 +171,7 @@
                     type: 'polarArea',
                     data: {
                         labels: data.slice(0, 6).map(d => d.country),
-                        datasets: [{ label: 'Producción', data: data.slice(0, 6).map(d => d.production) }]
+                        datasets: [{ label: 'Producción', data: data.slice(0, 6).map(d => d.cereal_production) }]
                     }
                 });
             }, 100);
@@ -179,7 +182,7 @@
     async function loadG27() {
         currentIntegration = "YHX_G27";
         clearContainers();
-        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams");
+        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams/loadInitialData");
         if (res.ok) {
             const data = await res.json();
             setTimeout(() => {
@@ -203,9 +206,11 @@
             const data = await res.json();
             setTimeout(() => {
                 const options = {
-                    chart: { type: 'radar', height: 400 },
-                    series: [{ name: 'Precio', data: data.slice(0, 5).map(d => d.price) }],
-                    labels: data.slice(0, 5).map(d => d.title.substring(0, 10) + '...')
+                    chart: { type: 'bar', height: 400 },
+                    plotOptions: { bar: { horizontal: true } }, // Barras tumbadas
+                    series: [{ name: 'Precio ($)', data: data.slice(0, 5).map(d => d.price) }],
+                    labels: data.slice(0, 5).map(d => d.title.substring(0, 15) + '...'),
+                    colors: ['#f39c12']
                 };
                 chartInstance = new ApexCharts(document.querySelector("#chartEXT1_YHX"), options);
                 chartInstance.render();
@@ -213,7 +218,7 @@
         }
     }
 
-    // 5. EXT 2 - Rick and Morty (Billboard.js - bar)
+    // 5. EXT 2 - Rick and Morty (Chart.js - Doughnut)
     async function loadExt2() {
         currentIntegration = "YHX_EXT2";
         clearContainers();
@@ -221,33 +226,17 @@
         if (res.ok) {
             const data = await res.json();
             setTimeout(() => {
-                chartInstance = bb.generate({
+                const ctx = document.getElementById('chartEXT2_YHX').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut', // Quesito con agujero
                     data: {
-                        columns: [
-                            ["Episodios", ...data.results.slice(0, 5).map(d => d.episode.length)]
-                        ],
-                        type: "bar"
-                    },
-                    axis: { x: { type: "category", categories: data.results.slice(0, 5).map(d => d.name) } },
-                    bindto: "#chartEXT2_YHX"
-                });
-            }, 100);
-        }
-    }
-
-    // 6. EXT 3 (PROXY) - Countries (C3.js - pie)
-    async function loadExt3Proxy() {
-        currentIntegration = "YHX_EXT3";
-        clearContainers();
-        // Fíjate que llamamos a NUESTRO backend, no a la API externa directamente
-        const res = await fetch("/api/proxy-countries");
-        if (res.ok) {
-            const data = await res.json();
-            setTimeout(() => {
-                const columns = data.slice(0, 5).map(d => [d.name.common, d.population]);
-                chartInstance = c3.generate({
-                    data: { columns: columns, type: 'pie' },
-                    bindto: '#chartEXT3_YHX'
+                        labels: data.results.slice(0, 5).map(d => d.name),
+                        datasets: [{ 
+                            label: 'Episodios en los que aparece', 
+                            data: data.results.slice(0, 5).map(d => d.episode.length),
+                            backgroundColor: ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0']
+                        }]
+                    }
                 });
             }, 100);
         }
@@ -354,7 +343,9 @@
                 <thead><tr><th>País</th><th>Año</th><th>Puntos</th></tr></thead>
                 <tbody>
                     {#each g26Data.slice(0, 10) as item}
-                        <tr><td>{item.country}</td><td>{item.year}</td><td>{item.points}</td></tr>
+                        <tr><td>{item.country}</td>
+                        <td>{item.year}</td>
+                        <td>{item.score}</td></tr>
                     {/each}
                 </tbody>
             </Table>
