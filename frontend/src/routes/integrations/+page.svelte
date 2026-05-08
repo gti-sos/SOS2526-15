@@ -481,12 +481,6 @@
         <button class="btn btn-outline-dark m-1" onclick={loadBreweries}> Breweries API </button>
         <button class="btn btn-outline-secondary m-1" onclick={loadCatFacts}>Cat Facts</button>
     </div>
-    <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
-        {#if currentIntegration === "MENU"}
-            <div class="text-center mt-5 py-5">
-                <h3 class="text-muted">Panel de Control de Datos</h3>
-                <p>Usa el menú superior para cargar las diferentes fuentes de datos.</p>
-            </div>
     <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
         {#if currentIntegration === "MENU"}
             <div class="text-center mt-5 py-5">
