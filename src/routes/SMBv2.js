@@ -48,6 +48,28 @@ export function loadBackendSMBv2(app){
     });
 
     });
+    // PROXY
+    app.get(`${API_URL_SMB}/proxy-pokemon`, async (req, res) => {
+
+        try {
+
+            const response = await fetch(
+                "https://pokeapi.co/api/v2/pokemon?limit=10"
+            );
+
+            const data = await response.json();
+
+            res.status(200).json(data.results);
+
+        } catch (error) {
+
+            console.error("proxy-pokemon error:", error.message);
+
+            res.status(502).json({
+                error: "Error en el proxy de Pokemon"
+            });
+        }
+    });
         // 405 para SMB
     app.all(API_URL_SMB, (req, res, next) => {
         if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {
@@ -304,4 +326,7 @@ export function loadBackendSMBv2(app){
     app.put("/", (req, res) => {
         return sendJson(res, 405, {error: "PUT not allowed on /"});
     });
+
+
     }
+    

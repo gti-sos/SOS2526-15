@@ -18,7 +18,8 @@
         if (chartInstance) chartInstance.destroy();
         const containers = ['chartG10', 'chartG16', 'chartEXT1', 'chartGITHUB', 
                         'chartG14', 'chartG18', 'chartG27', 'chartEXT1_YHX', 
-                        'chartEXT2_YHX', 'chartEXT3_YHX', 'chartHealthyDiet'];
+                        'chartEXT2_YHX', 'chartEXT3_YHX', 'chartHealthyDiet', 'chartSpaceLaunches', 'chartGrowthRates'
+                        , 'POKEMON_PROXY', 'chartBreweries', 'chartCatFacts'];
         containers.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
@@ -276,53 +277,311 @@
     let healthyDietData = $state([]);
     let launchesData = $state([]);
     let growthData = $state([]);
-    let weatherData = $state(null);
+    let breweryData = $state([]);
     let pokemonData = $state([]);
-    let mealsData = $state([]);
+    let catFacts = $state([]);
 
     async function loadHealthyDiet() {
 
-    clearContainers();
+        clearContainers();
 
-    const res = await fetch(
-            "https://sos2526-18.onrender.com/api/v1/cost-of-healthy-diet-by-countries"
+        const res = await fetch(
+                "https://sos2526-18.onrender.com/api/v1/cost-of-healthy-diet-by-countries"
+            );
+
+            if(res.ok){
+
+                healthyDietData = await res.json();
+
+                currentIntegration = "SMB_G18";
+
+                setTimeout(() => {
+
+                    Highcharts.chart('chartHealthyDiet', {
+
+                        chart: {
+                            type: 'area'
+                        },
+
+                        title: {
+                            text: 'Healthy Diet Cost'
+                        },
+
+                        xAxis: {
+                            categories: healthyDietData
+                                .slice(0,10)
+                                .map(d => d.country)
+                        },
+
+                        series: [{
+                            name: 'Healthy Diet Cost',
+                            data: healthyDietData
+                                .slice(0,10)
+                                .map(d => d.cost_healthy_diet_ppp_usd)
+                        }]
+                    });
+
+                },100);
+            }
+        }
+    async function loadSpaceLaunches() {
+
+        clearContainers();
+
+        const res = await fetch(
+            "https://space-launches-8cix.onrender.com/api/v2/space-launches"
         );
 
         if(res.ok){
 
-            healthyDietData = await res.json();
+            launchesData = await res.json();
 
-            currentIntegration = "SMB_G18";
+            currentIntegration = "SMB_G14";
 
             setTimeout(() => {
 
-                Highcharts.chart('chartHealthyDiet', {
+                const success = launchesData.filter(
+                    d => d.mission_status === "Success"
+                ).length;
+
+                const failure = launchesData.filter(
+                    d => d.mission_status === "Failure"
+                ).length;
+
+                const ctx = document
+                    .getElementById("chartSpaceLaunches")
+                    .getContext("2d");
+
+                chartInstance = new Chart(ctx, {
+
+                    type: "radar",
+
+                    data: {
+
+                        labels: ["Success", "Failure"],
+
+                        datasets: [{
+                            label: "Space Launches",
+                            data: [success, failure],
+
+                            backgroundColor: "rgba(54, 162, 235, 0.2)",
+                            borderColor: "rgba(54, 162, 235, 1)",
+                            pointBackgroundColor: "rgba(255, 99, 132, 1)",
+                            pointBorderColor: "#fff",
+                            pointHoverBackgroundColor: "#fff",
+                            pointHoverBorderColor: "rgba(255, 99, 132, 1)"
+                        }]
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "Success vs Failure Launches"
+                            }
+                        },
+
+                        scales: {
+                            r: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+            },100);
+        }
+    }
+    async function loadGrowthRates() {
+
+        clearContainers();
+
+        const res = await fetch(
+            "https://sos2526-12.onrender.com/api/v2/birth-death-growth-rates"
+        );
+
+        if(res.ok){
+
+            growthData = await res.json();
+
+            currentIntegration = "SMB_G12";
+
+            setTimeout(() => {
+
+                const ctx = document
+                    .getElementById("chartGrowthRates")
+                    .getContext("2d");
+
+                chartInstance = new Chart(ctx, {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels: growthData
+                            .slice(0,8)
+                            .map(d => d.country_name),
+
+                        datasets: [
+
+                            {
+                                label: "Birth Rate",
+
+                                data: growthData
+                                    .slice(0,8)
+                                    .map(d => d.crude_birth_rate)
+                            },
+
+                            {
+                                label: "Death Rate",
+
+                                data: growthData
+                                    .slice(0,8)
+                                    .map(d => d.crude_death_rate)
+                            },
+
+                            {
+                                label: "Growth Rate",
+
+                                data: growthData
+                                    .slice(0,8)
+                                    .map(d => d.growth_rate)
+                            }
+                        ]
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "Birth / Death / Growth Rates"
+                            }
+                        }
+                    }
+                });
+
+            },100);
+        }
+    }
+    async function loadPokemonProxy() {
+
+        clearContainers();
+
+        const res = await fetch(
+            "/api/v2/minimum-interprofessional-wages/proxy-pokemon"
+        );
+
+        if(res.ok){
+
+            const data = await res.json();
+
+            externalData = data;
+
+            currentIntegration = "POKEMON_PROXY";
+        }
+    }
+
+
+    async function loadBreweries() {
+
+        clearContainers();
+
+        const res = await fetch(
+            "https://api.openbrewerydb.org/v1/breweries?per_page=10"
+        );
+
+        if(res.ok){
+
+            breweryData = await res.json();
+
+            currentIntegration = "BREWERIES";
+
+            setTimeout(() => {
+
+                Highcharts.chart('chartBreweries', {
 
                     chart: {
-                        type: 'area'
+                        type: 'column'
                     },
 
                     title: {
-                        text: 'Healthy Diet Cost'
+                        text: 'Breweries by City'
                     },
 
                     xAxis: {
-                        categories: healthyDietData
-                            .slice(0,10)
-                            .map(d => d.country)
+                        categories: breweryData.map(b => b.city)
                     },
 
                     series: [{
-                        name: 'Healthy Diet Cost',
-                        data: healthyDietData
-                            .slice(0,10)
-                            .map(d => d.cost_healthy_diet_ppp_usd)
+                        name: 'Breweries',
+                        data: breweryData.map(() => 1)
                     }]
                 });
 
             },100);
         }
     }
+    async function loadCatFacts() {
+
+        clearContainers();
+
+        const res = await fetch(
+            "https://catfact.ninja/facts?limit=10"
+        );
+
+        if(res.ok){
+
+            const data = await res.json();
+
+            catFacts = data.data;
+
+            currentIntegration = "CAT_FACTS";
+
+            setTimeout(() => {
+
+                Highcharts.chart('chartCatFacts', {
+
+                    chart: {
+                        type: 'scatter',
+                        zoomType: 'xy'
+                    },
+
+                    title: {
+                        text: 'Cat Facts Length'
+                    },
+
+                    xAxis: {
+                        title: {
+                            text: 'Fact Number'
+                        }
+                    },
+
+                    yAxis: {
+                        title: {
+                            text: 'Characters'
+                        }
+                    },
+
+                    series: [{
+                        name: 'Fact Length',
+                        data: catFacts.map((f, index) => [
+                            index + 1,
+                            f.length
+                        ])
+                    }]
+                });
+
+            },100);
+        }
+    }
+
+
 </script>
 
 <main class="container py-4">
@@ -352,7 +611,12 @@
 
 
     <div class="row g-2 justify-content-center mb-5">
-        <button class="btn btn-outline-warning m-1" onclick={loadHealthyDiet}> Healthy Diet (G18) </button>
+        <button class="btn btn-outline-warning m-1" onclick={loadHealthyDiet}> Healthy Diet (G18) </button>
+        <button class="btn btn-outline-info m-1" onclick={loadSpaceLaunches}> Space Launches (G14) </button>
+        <button class="btn btn-outline-success m-1" onclick={loadGrowthRates}> Growth Rates (G12) </button>
+        <button class="btn btn-outline-success m-1" onclick={loadPokemonProxy}> Pokémon Proxy </button>
+        <button class="btn btn-outline-dark m-1" onclick={loadBreweries}> Breweries API </button>
+        <button class="btn btn-outline-secondary m-1" onclick={loadCatFacts}>Cat Facts</button>
     </div>
     <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
         {#if currentIntegration === "MENU"}
@@ -457,11 +721,67 @@
             <h3>🌍 REST Countries (Vía Proxy)</h3>
             <div id="chartEXT3_YHX"></div>
         {:else if currentIntegration === "SMB_G18"}
-            <h3>🥗 Healthy Diet</h3>
+            <h3>Healthy Diet</h3>
             <div id="chartHealthyDiet"
                 style="width:100%; height:400px;">
             </div>
+        {:else if currentIntegration === "SMB_G14"}
+            <h3>Space Launches</h3>
+
+            <div style="max-width:500px; margin:auto;">
+                <canvas id="chartSpaceLaunches"></canvas>
+            </div>
+        {:else if currentIntegration === "SMB_G12"}
+
+            <h3>Birth / Death / Growth Rates</h3>
+
+            <div style="width:100%; max-width:900px; margin:auto;">
+                <canvas id="chartGrowthRates"></canvas>
+            </div>
+        {:else if currentIntegration === "POKEMON_PROXY"}
+
+            <h3>Pokemon API (Proxy)</h3>
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>URL</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {#each externalData as pokemon}
+
+                        <tr>
+                            <td>{pokemon.name}</td>
+                            <td>{pokemon.url}</td>
+                        </tr>
+
+                    {/each}
+
+                </tbody>
+
+            </table>
+            {:else if currentIntegration === "BREWERIES"}
+
+                <h3>Breweries API</h3>
+
+                <div id="chartBreweries"
+                    style="width:100%; height:400px;">
+                </div>
+            {:else if currentIntegration === "CAT_FACTS"}
+
+                <h3>Cat Facts API</h3>
+
+                <div id="chartCatFacts"
+                    style="width:100%; height:400px;">
+                </div>
         {/if}
+
+
         
     </div>
 </main>
