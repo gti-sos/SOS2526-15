@@ -26,58 +26,85 @@
 
     // --- INTEGRACIONES YHX ---
     // --- VARIABLES ---
-    let g26Data = $state([]);
+    let g26Data = $state(null); // Empezamos en null para saber si está cargando
 
-    // --- 1. SOS G26 (Rankings) | HTML Puro ---
+    // --- 1. SOS G26 (Rankings) | Tabla HTML ---
     async function loadG26() {
         currentIntegration = "YHX_G26";
+        g26Data = null; // Reiniciamos el estado de carga
         clearContainers();
-        const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/");
-        if (res.ok) g26Data = await res.json();
+        try {
+            const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/");
+            if (res.ok) {
+                const data = await res.json();
+                g26Data = data;
+                console.log("Datos G26 cargados:", data);
+            } else {
+                g26Data = []; // Evitamos el bucle de "Cargando"
+                console.error("Error al cargar G26. Código:", res.status);
+            }
+        } catch (e) {
+            g26Data = [];
+            console.error("Error de red o CORS en G26:", e);
+        }
     }
 
-    // --- 2. SOS G18 (Cereales) | Chart.js (polarArea) ---
+    // --- 2. SOS G18 (Cereales) | Highcharts (Columnas) ---
+    // Cambio: Ahora usamos Highcharts para una visualización más limpia
     async function loadG18() {
         currentIntegration = "YHX_G18";
         clearContainers();
-        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
-        if (res.ok) {
-            const data = await res.json();
-            setTimeout(() => {
-                const ctx = document.getElementById('chartG18').getContext('2d');
-                chartInstance = new Chart(ctx, {
-                    type: 'polarArea',
-                    data: {
-                        // OJO: Comprueba en Postman si se llama 'country' y 'production'
-                        labels: data.slice(0, 6).map(d => d.country), 
-                        datasets: [{ 
-                            label: 'Producción (Ton)', 
-                            data: data.slice(0, 6).map(d => d.production) 
-                        }]
-                    }
-                });
-            }, 100);
-        }
+        try {
+            const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
+            if (res.ok) {
+                const data = await res.json();
+                setTimeout(() => {
+                    Highcharts.chart('chartG18', {
+                        chart: { type: 'column' },
+                        title: { text: 'Producción de Cereales (Grupo 18)' },
+                        xAxis: { 
+                            // Nota: Usamos d.country y d.year según su documentación
+                            categories: data.slice(0, 10).map(d => `${d.country} (${d.year})`) 
+                        },
+                        yAxis: { title: { text: 'Toneladas' } },
+                        series: [{ 
+                            name: 'Producción Total', 
+                            data: data.slice(0, 10).map(d => d.production),
+                            color: '#2ecc71'
+                        }],
+                        credits: { enabled: false }
+                    });
+                }, 100);
+            }
+        } catch (e) { console.error("Error G18:", e); }
     }
 
-    // --- 3. SOS G27 (Presas de agua) | ECharts (scatter) ---
+    // --- 3. SOS G27 (Presas) | ECharts (Scatter) ---
     async function loadG27() {
         currentIntegration = "YHX_G27";
         clearContainers();
-        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams");
-        if (res.ok) {
-            const data = await res.json();
-            setTimeout(() => {
-                const chartDom = document.getElementById('chartG27');
-                chartInstance = echarts.init(chartDom);
-                chartInstance.setOption({
-                    // OJO: Comprueba en Postman si se llama 'dam' y 'capacity'
-                    xAxis: { type: 'category', data: data.slice(0,10).map(d => d.dam) },
-                    yAxis: { type: 'value' },
-                    series: [{ type: 'scatter', symbolSize: 20, data: data.slice(0,10).map(d => d.capacity) }]
-                });
-            }, 100);
-        }
+        try {
+            const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams");
+            if (res.ok) {
+                const data = await res.json();
+                setTimeout(() => {
+                    const chartDom = document.getElementById('chartG27');
+                    const myChart = echarts.init(chartDom);
+                    myChart.setOption({
+                        title: { text: 'Capacidad de Presas (Grupo 27)' },
+                        tooltip: { trigger: 'item' },
+                        xAxis: { type: 'category', data: data.slice(0, 10).map(d => d.dam || d.country) },
+                        yAxis: { type: 'value', name: 'Capacidad' },
+                        series: [{
+                            data: data.slice(0, 10).map(d => d.capacity),
+                            type: 'scatter',
+                            symbolSize: 30,
+                            itemStyle: { color: '#3498db' }
+                        }]
+                    });
+                }, 100);
+            }
+        } catch (e) { console.error("Error G27:", e); }
     }
 
     // --- 4. EXTERNA 1 (FakeStore API) | ApexCharts (Bar) ---
@@ -500,33 +527,36 @@
 
         {:else if currentIntegration === "YHX_G26"}
             <h3>📝 Grupo 26: Rankings Deportivos</h3>
-            <p class="small text-muted">Requisito: Uso textual en HTML puro</p>
-            {#if g26Data.length > 0}
-                <Table striped bordered>
-                    <thead>
-                        <tr> 
-                            <th>País</th>
+            <p class="small text-muted">Datos obtenidos de su API v2 (Uso textual HTML)</p>
+            
+            {#if g26Data === null}
+                <div class="alert alert-info">⌛ Conectando con el servidor del Grupo 26... (Puede tardar si el servidor estaba dormido)</div>
+            {:else if g26Data.length === 0}
+                <div class="alert alert-danger">❌ No se han podido recuperar datos del Grupo 26. Revisa la consola (F12).</div>
+            {:else}
+                <table class="table table-striped table-bordered mt-3">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>País / Equipo</th>
                             <th>Año</th>
                             <th>Puntos</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {#each g26Data.slice(0, 10) as item}
-                            <tr> 
-                                <td>{item.country}</td>
+                        {#each g26Data.slice(0, 15) as item}
+                            <tr>
+                                <td>{item.country || item.team}</td>
                                 <td>{item.year}</td>
                                 <td>{item.points}</td>
                             </tr>
                         {/each}
                     </tbody>
-                </Table>
-            {:else}
-                <p>Cargando datos del grupo 26...</p>
+                </table>
             {/if}
 
         {:else if currentIntegration === "YHX_G18"}
-            <h3>🌾 Grupo 18: Cereales</h3>
-            <div style="width: 100%; max-width: 600px; margin: auto;"><canvas id="chartG18"></canvas></div>
+            <h3>🌾 Grupo 18: Producción de Cereales</h3>
+            <div id="chartG18" style="width: 100%; height: 450px; margin-top: 20px;"></div>
 
         {:else if currentIntegration === "YHX_G27"}
             <h3>💧 Grupo 27: Presas</h3>
