@@ -25,19 +25,22 @@
     }
 
     // --- INTEGRACIONES YHX ---
+    // --- VARIABLES ---
     let g26Data = $state([]);
 
+    // --- 1. SOS G26 (Rankings) | HTML Puro ---
     async function loadG26() {
         currentIntegration = "YHX_G26";
         clearContainers();
-        const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/loadInitialData");
+        const res = await fetch("https://sos2526-26.onrender.com/api/v2/national-team-rankings-per-years/");
         if (res.ok) g26Data = await res.json();
     }
 
-    async function loadG18_2() {
+    // --- 2. SOS G18 (Cereales) | Chart.js (polarArea) ---
+    async function loadG18() {
         currentIntegration = "YHX_G18";
         clearContainers();
-        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions/loadInitialData");
+        const res = await fetch("https://sos2526-18-cereal-productions-stable.onrender.com/api/v2/cereal-productions");
         if (res.ok) {
             const data = await res.json();
             setTimeout(() => {
@@ -45,24 +48,30 @@
                 chartInstance = new Chart(ctx, {
                     type: 'polarArea',
                     data: {
-                        labels: data.slice(0, 6).map(d => d.country),
-                        datasets: [{ label: 'Producción', data: data.slice(0, 6).map(d => d.cereal_production) }]
+                        // OJO: Comprueba en Postman si se llama 'country' y 'production'
+                        labels: data.slice(0, 6).map(d => d.country), 
+                        datasets: [{ 
+                            label: 'Producción (Ton)', 
+                            data: data.slice(0, 6).map(d => d.production) 
+                        }]
                     }
                 });
             }, 100);
         }
     }
 
+    // --- 3. SOS G27 (Presas de agua) | ECharts (scatter) ---
     async function loadG27() {
         currentIntegration = "YHX_G27";
         clearContainers();
-        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams/loadInitialData");
+        const res = await fetch("https://sos2526-27.onrender.com/api/v1/water-dams");
         if (res.ok) {
             const data = await res.json();
             setTimeout(() => {
                 const chartDom = document.getElementById('chartG27');
                 chartInstance = echarts.init(chartDom);
                 chartInstance.setOption({
+                    // OJO: Comprueba en Postman si se llama 'dam' y 'capacity'
                     xAxis: { type: 'category', data: data.slice(0,10).map(d => d.dam) },
                     yAxis: { type: 'value' },
                     series: [{ type: 'scatter', symbolSize: 20, data: data.slice(0,10).map(d => d.capacity) }]
@@ -71,6 +80,8 @@
         }
     }
 
+    // --- 4. EXTERNA 1 (FakeStore API) | ApexCharts (Bar) ---
+    // API 100% externa. Usamos 'title' y 'price' (estos sí son 100% seguros)
     async function loadExt1() {
         currentIntegration = "YHX_EXT1";
         clearContainers();
@@ -91,6 +102,8 @@
         }
     }
 
+    // --- 5. EXTERNA 2 (Rick & Morty) | Chart.js (Doughnut) ---
+    // API 100% externa. Usamos 'name' y contamos cuántos episodios tiene 'episode.length'
     async function loadExt2() {
         currentIntegration = "YHX_EXT2";
         clearContainers();
@@ -114,23 +127,19 @@
         }
     }
 
+    // --- 6. EXTERNA 3 (REST Countries vía PROXY) | C3.js (Pie) ---
+    // API 100% externa a través del proxy. Usamos 'name.common' y 'population'
     async function loadExt3Proxy() {
+        currentIntegration = "YHX_EXT3";
         clearContainers();
-        const res = await fetch("/api/v2/happiness-indices/proxy-countries");
+        const res = await fetch("/api/proxy-countries");
         if (res.ok) {
-            const countries = await res.json();
-            const regionCount = {};
-            countries.forEach(c => {
-                const r = c.region || "Desconocida";
-                regionCount[r] = (regionCount[r] || 0) + 1;
-            });
-            const columns = Object.entries(regionCount).map(([region, count]) => [region, count]);
-            currentIntegration = "YHX_EXT3";
+            const data = await res.json();
             setTimeout(() => {
-                c3.generate({
-                    bindto: '#chartEXT3_YHX',
-                    data: { columns: columns, type: 'bar' },
-                    bar: { width: { ratio: 0.5 } }
+                const columns = data.slice(0, 5).map(d => [d.name.common, d.population]);
+                chartInstance = c3.generate({
+                    data: { columns: columns, type: 'pie' },
+                    bindto: '#chartEXT3_YHX'
                 });
             }, 100);
         }
@@ -491,14 +500,29 @@
 
         {:else if currentIntegration === "YHX_G26"}
             <h3>📝 Grupo 26: Rankings Deportivos</h3>
-            <table class="table table-striped">
-                <thead><tr><th>País</th><th>Año</th><th>Puntos</th></tr></thead>
-                <tbody>
-                    {#each g26Data.slice(0, 10) as item}
-                        <tr><td>{item.country}</td><td>{item.year}</td><td>{item.score}</td></tr>
-                    {/each}
-                </tbody>
-            </table>
+            <p class="small text-muted">Requisito: Uso textual en HTML puro</p>
+            {#if g26Data.length > 0}
+                <Table striped bordered>
+                    <thead>
+                        <tr> 
+                            <th>País</th>
+                            <th>Año</th>
+                            <th>Puntos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each g26Data.slice(0, 10) as item}
+                            <tr> 
+                                <td>{item.country}</td>
+                                <td>{item.year}</td>
+                                <td>{item.points}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </Table>
+            {:else}
+                <p>Cargando datos del grupo 26...</p>
+            {/if}
 
         {:else if currentIntegration === "YHX_G18"}
             <h3>🌾 Grupo 18: Cereales</h3>
