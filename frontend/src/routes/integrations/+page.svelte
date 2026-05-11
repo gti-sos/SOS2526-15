@@ -58,9 +58,11 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         setTimeout(() => {
             Highcharts.chart('chartG18', {
                 chart: { type: 'column' },
-                title: { text: 'Producción de Cereales' },
+                title: { text: 'Producción de Cereales (Grupo 18)' },
+                // Usamos d.country y d.year
                 xAxis: { categories: data.slice(0, 10).map(d => `${d.country} (${d.year})`) },
-                series: [{ name: 'Producción', data: data.slice(0, 10).map(d => d.production) }]
+                // Usamos el campo correcto: d.cereal_production
+                series: [{ name: 'Producción (Toneladas)', data: data.slice(0, 10).map(d => d.cereal_production) }]
             });
         }, 100);
     }
@@ -73,9 +75,12 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         setTimeout(() => {
             const myChart = echarts.init(document.getElementById('chartG27'));
             myChart.setOption({
-                xAxis: { type: 'category', data: data.slice(0, 10).map(d => d.dam) },
-                yAxis: { type: 'value' },
-                series: [{ data: data.slice(0, 10).map(d => d.capacity), type: 'scatter', symbolSize: 20 }]
+                title: { text: 'Capacidad de Presas (Grupo 27)' },
+                tooltip: { trigger: 'item' },
+                // Usamos los campos correctos: d.dam_name y d.cap_mcm
+                xAxis: { type: 'category', data: data.slice(0, 10).map(d => d.dam_name) },
+                yAxis: { type: 'value', name: 'Capacidad (mcm)' },
+                series: [{ data: data.slice(0, 10).map(d => d.cap_mcm), type: 'scatter', symbolSize: 20 }]
             });
         }, 100);
     }
@@ -495,32 +500,29 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             <div class="text-center mt-5 py-5">
                 <h3 class="text-muted">Panel de Control de Datos</h3>
                 <p>Usa el menú superior para cargar las integraciones de YHX y SMB.</p>
-                <p class="small">Tus integraciones (JAM) ahora abren en páginas separadas.</p>
+                <p class="small">Las integraciones (JAM) ahora abren en páginas separadas.</p>
             </div>
 
         {:else if currentIntegration === "YHX_G26"}
             <h3>📝 Grupo 26: Rankings Deportivos</h3>
             <p class="small text-muted">Datos obtenidos de su API v2 (Uso textual HTML)</p>
-            
-            {#if g26Data === null}
-                <div class="alert alert-info">⌛ Conectando con el servidor del Grupo 26... (Puede tardar si el servidor estaba dormido)</div>
-            {:else if g26Data.length === 0}
-                <div class="alert alert-danger">❌ No se han podido recuperar datos del Grupo 26. Revisa la consola (F12).</div>
-            {:else}
-                <table class="table table-striped table-bordered mt-3">
+            {#if g26Data}
+                <table class="table table-striped mt-3">
                     <thead class="table-dark">
                         <tr>
-                            <th>País / Equipo</th>
+                            <th>País</th>
                             <th>Año</th>
-                            <th>Puntos</th>
+                            <th>Score</th>
+                            <th>Rank</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {#each g26Data.slice(0, 15) as item}
+                        {#each g26Data.slice(0,10) as item}
                             <tr>
-                                <td>{item.country || item.team}</td>
+                                <td>{item.country}</td>
                                 <td>{item.year}</td>
-                                <td>{item.points}</td>
+                                <td>{item.score}</td>
+                                <td>{item.rank}</td>
                             </tr>
                         {/each}
                     </tbody>
