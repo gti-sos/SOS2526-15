@@ -470,7 +470,7 @@
     <h1 class="text-center mb-4">🧩 Integraciones YHX</h1>
     <div class="row g-2 justify-content-center mb-5">
         <button class="btn btn-outline-primary m-1" onclick={loadG26}>Grupo 26 (Texto)</button>
-        <button class="btn btn-outline-primary m-1" onclick={loadG18_2}>Grupo 18 (Chart.js)</button>
+        <button class="btn btn-outline-primary m-1" onclick={loadG18}>Grupo 18 (Chart.js)</button>
         <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Doughnut)</button>
