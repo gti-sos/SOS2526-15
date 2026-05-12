@@ -5,28 +5,23 @@
     let loading = $state(true);
 
     onMount(async () => {
-        // 1. Cargamos las DOS APIs en paralelo
+       
         const [resMet, resSmi] = await Promise.all([
             fetch("https://sos2526-14.onrender.com/api/v2/meteorite-landings"),
-            fetch("/api/v2/minimum-interprofessional-wages")
+            fetch("https://sos2526-15.onrender.com/api/v2/happiness-indices")
         ]);
 
         if (resMet.ok && resSmi.ok) {
             const meteoriteData = await resMet.json();
             const smiData = await resSmi.json();
 
-            // 2. Lógica de integración:
-            // Vamos a contar meteoritos por país y buscar su salario mínimo
-            // Nota: Filtramos países comunes para que la gráfica no sea gigante
             const targetCountries = ["Spain", "France", "Germany", "Italy", "USA"];
             
             const integratedData = targetCountries.map(country => {
-                // Contamos cuántos meteoritos hay registrados para ese país
                 const count = meteoriteData.filter(m => 
                     m.country?.toLowerCase() === country.toLowerCase()
                 ).length;
 
-                // Buscamos nuestro SMI para ese país
                 const smi = smiData.find(s => 
                     s.country.toLowerCase() === country.toLowerCase()
                 );
@@ -38,7 +33,6 @@
                 };
             });
 
-            // 3. Creamos una gráfica de barras comparativa (Barras dobles)
             const ctx = document.getElementById('chartCombined');
             new Chart(ctx, {
                 type: 'bar',

@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte';
-    // Librerías necesarias para las integraciones de tus compañeros
     import Chart from 'chart.js/auto';
     import * as echarts from 'echarts';
     import ApexCharts from 'apexcharts';
@@ -11,7 +10,6 @@
     let chartInstance = null;       
     let externalData = $state([]);
 
-    // Limpiador para que las gráficas no se solapen
     function clearContainers() {
         if (chartInstance && typeof chartInstance.destroy === 'function') chartInstance.destroy();
         const containers = ['chartG10', 'chartG16', 'chartEXT1', 'chartGITHUB', 
@@ -563,15 +561,15 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
 </script>
 
 <main class="container py-4">
-    <h1 class="text-center mb-4">🧩 Mis Integraciones (JAM)</h1>
+    <h1 class="text-center mb-4">🧩 Integraciones JAM</h1>
     <div class="row g-2 justify-content-center mb-5">
-        <a class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-meteoritos">☄️ Meteoritos (G14)</a>
-        <a class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-pandemias">🦠 Pandemias (G10)</a>
-        <a class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-ev-sales">⚡ EV Sales (G16)</a>
-        <a class="pointer btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-food">🍎 Food (G18)</a>
-        <a class="btn btn-sm btn-outline-success col-auto m-1" href="/integrations/jam-paises">🌍 Países (Proxy)</a>
-        <a class="btn btn-sm btn-outline-dark col-auto m-1" href="/integrations/jam-github">🐙 GitHub (OAuth)</a>
-        <a class="btn btn-sm btn-outline-danger col-auto m-1" href="/integrations/jam-tv">🎬 TV Series (EXT)</a>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-meteoritos">☄️ Meteoritos (G14)</a>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-pandemias">🦠 Pandemias (G10)</a>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-ev-sales">⚡ EV Sales (G16)</a>
+        <button class="pointer btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-food">🍎 Food (G18)</a>
+        <button class="btn btn-sm btn-outline-success col-auto m-1" href="/integrations/jam-paises">🌍 Países (Proxy)</a>
+        <button class="btn btn-sm btn-outline-dark col-auto m-1" href="/integrations/jam-github">🐙 GitHub (OAuth)</a>
+        <button class="btn btn-sm btn-outline-danger col-auto m-1" href="/integrations/jam-tv">🎬 TV Series (EXT)</a>
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones YHX</h1>
@@ -598,8 +596,6 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         {#if currentIntegration === "MENU"}
             <div class="text-center mt-5 py-5">
                 <h3 class="text-muted">Panel de Control de Datos</h3>
-                <p>Usa el menú superior para cargar las integraciones de YHX y SMB.</p>
-                <p class="small">Las integraciones (JAM) ahora abren en páginas separadas.</p>
             </div>
 
         {:else if currentIntegration === "YHX_G26"}
