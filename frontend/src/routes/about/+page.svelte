@@ -4,7 +4,7 @@
         {
             id: "SMB",
             name: "Samanta Montoya",
-            videoUrl: "https://youtu.be/jNQXAC9IVRw?si=DlidRf68oFyf4l8u", 
+            videoUrl: "https://youtu.be/rOSJTrKOQHU", 
             description: "Responsable de minimum-interprofessional-wages."
         },
         {
