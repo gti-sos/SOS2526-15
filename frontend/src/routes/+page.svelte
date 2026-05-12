@@ -5,7 +5,8 @@
 // lo nuevo //
     const repoUrl = "https://github.com/gti-sos/SOS2526-15"; 
     const AnaUrl = "/analytics";
-    const aboutUrl = "/about";  
+    const aboutUrl = "/about"; 
+    const intUrl = "/integrations";   
 </script>
 
 <svelte:head>
@@ -25,6 +26,9 @@
         </a>
         <a href={aboutUrl} target="_blank" rel="noopener noreferrer" class="btn-github">
             ▶️ Videos Explicatorios
+        </a>
+        <a href={intUrl} target="_blank" rel="noopener noreferrer" class="btn-github">
+            ⚙️ Integraciones
         </a>
     </div>
 
