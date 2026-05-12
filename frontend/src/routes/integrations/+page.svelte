@@ -132,21 +132,19 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
     }
 
     // --- 6. Ext 3: Criptomonedas (Proxy) ---
-    async function loadCryptoProxy() {
-        // Le cambiamos el nombre al estado para que quede claro
-        currentIntegration = "CRYPTO_PROXY"; 
+    async function loadUsersProxy() {
+        currentIntegration = "USERS_PROXY"; 
         clearContainers();
-        externalData = []; // Limpiamos datos anteriores
+        externalData = [];
         try {
-            // OJO: Tendrás que crear esta ruta en tu backend (te lo explico abajo)
-            const res = await fetch("/api/v1/population-densities/proxy-crypto"); 
+            // Apuntamos a la nueva ruta de tu backend
+            const res = await fetch("/api/v1/population-densities/proxy-users"); 
             if (res.ok) {
-                const json = await res.json();
-                // CoinCap devuelve los datos dentro de un objeto llamado 'data'
-                externalData = json.data || json; 
+                const data = await res.json();
+                externalData = data; 
             }
         } catch (error) {
-            console.error("Error al cargar el proxy de criptos:", error);
+            console.error("Error al cargar el proxy de usuarios:", error);
         }
     }
 
@@ -575,7 +573,7 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Doughnut)</button>
-        <button class="btn btn-dark col-auto m-1" onclick={loadCryptoProxy}>Ext 3 (Criptos Proxy)</button>
+        <button class="btn btn-dark col-auto m-1" onclick={loadUsersProxy}>Ext 3 (Usuarios Proxy)</button>
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones SMB</h1>
@@ -636,33 +634,33 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             <h3>👽 Rick and Morty API</h3>
             <canvas id="chartEXT2_YHX"></canvas>
 
-        {:else if currentIntegration === "CRYPTO_PROXY"}
-            <h3>💰 Top Criptomonedas (vía Proxy)</h3>
-            <p class="small text-muted">Datos obtenidos de CoinCap API a través de nuestro backend</p>
+        {:else if currentIntegration === "USERS_PROXY"}
+            <h3>👥 Directorio de Usuarios (vía Proxy)</h3>
+            <p class="small text-muted">Datos obtenidos de JSONPlaceholder API a través de nuestro backend</p>
             
             {#if externalData.length > 0}
                 <table class="table table-hover mt-3 shadow-sm">
                     <thead class="table-dark">
                         <tr>
-                            <th>Rank</th>
-                            <th>Nombre</th>
-                            <th>Símbolo</th>
-                            <th>Precio (USD)</th>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Email</th>
+                            <th>Compañía</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {#each externalData.slice(0, 10) as coin}
+                        {#each externalData.slice(0, 10) as user}
                             <tr>
-                                <td>{coin.rank}</td>
-                                <td><strong>{coin.name}</strong></td>
-                                <td><span class="badge bg-secondary">{coin.symbol}</span></td>
-                                <td>${parseFloat(coin.priceUsd).toFixed(2)}</td>
+                                <td>{user.id}</td>
+                                <td><strong>{user.name}</strong></td>
+                                <td><a href="mailto:{user.email}">{user.email}</a></td>
+                                <td><span class="badge bg-info text-dark">{user.company.name}</span></td>
                             </tr>
                         {/each}
                     </tbody>
                 </table>
             {:else}
-                <div class="alert alert-info">Cargando datos del mercado a través del proxy...</div>
+                <div class="alert alert-info">Cargando directorio de usuarios a través del proxy...</div>
             {/if}
 
         {:else if currentIntegration === "SMB_G18"}
