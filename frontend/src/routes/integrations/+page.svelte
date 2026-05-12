@@ -138,7 +138,7 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         externalData = [];
         try {
             // Apuntamos a la nueva ruta de tu backend
-            const res = await fetch("/api/v1/population-densities/proxy-users"); 
+            const res = await fetch("/api/v1/yhx-proxy"); 
             if (res.ok) {
                 const data = await res.json();
                 externalData = data; 

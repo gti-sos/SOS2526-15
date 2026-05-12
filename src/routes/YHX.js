@@ -41,13 +41,11 @@ export function loadBackendYHX(app) {
     });
 
     // --- PROXY PARA CRIPTOMONEDAS (CoinCap) ---
-    app.get(`${API_URL}/proxy-crypto`, async (req, res) => {
+    // Al no usar API_URL, es imposible que choque con /:country
+    app.get('/api/v1/yhx-proxy', async (req, res) => {
         try {
-            // Hacemos la petición a la API original desde nuestro servidor
             const response = await fetch('https://jsonplaceholder.typicode.com/users');
             const data = await response.json();
-            
-            // Devolvemos los datos a nuestro frontend
             res.json(data);
         } catch (error) {
             console.error("Error en el proxy:", error);
