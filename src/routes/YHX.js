@@ -44,7 +44,7 @@ export function loadBackendYHX(app) {
     // Al no usar API_URL, es imposible que choque con /:country
     app.get('/api/v1/yhx-proxy', async (req, res) => {
         try {
-            const response = await fetch('https://jsonplaceholder.typicode.com/users');
+            const response = await fetch('https://api.frankfurter.app/latest?from=EUR');
             const data = await response.json();
             res.json(data);
         } catch (error) {

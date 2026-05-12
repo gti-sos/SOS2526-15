@@ -132,19 +132,36 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
     }
 
     // --- 6. Ext 3: Criptomonedas (Proxy) ---
-    async function loadUsersProxy() {
-        currentIntegration = "USERS_PROXY"; 
+    async function loadProxyChart() {
+        currentIntegration = "PROXY_CHART"; 
         clearContainers();
-        externalData = [];
+        
         try {
-            // Apuntamos a la nueva ruta de tu backend
             const res = await fetch("/api/v1/yhx-proxy"); 
             if (res.ok) {
                 const data = await res.json();
-                externalData = data; 
+                
+                // La API devuelve un objeto 'rates' con las monedas. Lo separamos.
+                // Cogemos solo las primeras 10 divisas para que la gráfica se lea bien
+                const currencies = Object.keys(data.rates).slice(0, 10);
+                const values = Object.values(data.rates).slice(0, 10);
+                
+                // Esperamos un poco a que el HTML exista para pintar la gráfica
+                setTimeout(() => {
+                    new ApexCharts(document.querySelector("#chartProxy_YHX"), {
+                        chart: { type: 'bar', height: 400 },
+                        title: { text: 'Valor de 1 EUR en otras divisas', align: 'center' },
+                        series: [{ name: 'Valor de Cambio', data: values }],
+                        xaxis: { categories: currencies },
+                        colors: ['#28a745'], // Un verde tipo financiero
+                        plotOptions: {
+                            bar: { borderRadius: 4, horizontal: false }
+                        }
+                    }).render();
+                }, 100);
             }
         } catch (error) {
-            console.error("Error al cargar el proxy de usuarios:", error);
+            console.error("Error al cargar la gráfica del proxy:", error);
         }
     }
 
@@ -573,7 +590,7 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Doughnut)</button>
-        <button class="btn btn-dark col-auto m-1" onclick={loadUsersProxy}>Ext 3 (Usuarios Proxy)</button>
+        <button class="btn btn-dark col-auto m-1" onclick={loadProxyChart}>Ext 3 (Divisas Proxy)</button>
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones SMB</h1>
@@ -634,34 +651,11 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             <h3>👽 Rick and Morty API</h3>
             <canvas id="chartEXT2_YHX"></canvas>
 
-        {:else if currentIntegration === "USERS_PROXY"}
-            <h3>👥 Directorio de Usuarios (vía Proxy)</h3>
-            <p class="small text-muted">Datos obtenidos de JSONPlaceholder API a través de nuestro backend</p>
+        {:else if currentIntegration === "PROXY_CHART"}
+            <h3>💶 Tipos de Cambio (EUR) vía Proxy</h3>
+            <p class="small text-muted">Datos numéricos de Frankfurter API a través de nuestro backend</p>
             
-            {#if externalData.length > 0}
-                <table class="table table-hover mt-3 shadow-sm">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre Completo</th>
-                            <th>Email</th>
-                            <th>Compañía</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each externalData.slice(0, 10) as user}
-                            <tr>
-                                <td>{user.id}</td>
-                                <td><strong>{user.name}</strong></td>
-                                <td><a href="mailto:{user.email}">{user.email}</a></td>
-                                <td><span class="badge bg-info text-dark">{user.company.name}</span></td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                </table>
-            {:else}
-                <div class="alert alert-info">Cargando directorio de usuarios a través del proxy...</div>
-            {/if}
+            <div id="chartProxy_YHX" class="mt-4 shadow-sm p-3 bg-white rounded"></div>
 
         {:else if currentIntegration === "SMB_G18"}
             <h3>Healthy Diet</h3>
