@@ -131,21 +131,22 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         }
     }
 
-    // --- 6. EXTERNA 3 (REST Countries vía PROXY) | C3.js (Pie) ---
-    // API 100% externa a través del proxy. Usamos 'name.common' y 'population'
-    async function loadExt3Proxy() {
-        currentIntegration = "YHX_EXT3";
+    // --- Ext 3: Criptomonedas (Proxy) ---
+    async function loadCryptoProxy() {
+        // Le cambiamos el nombre al estado para que quede claro
+        currentIntegration = "CRYPTO_PROXY"; 
         clearContainers();
-        const res = await fetch("/api/proxy-countries");
-        if (res.ok) {
-            const data = await res.json();
-            setTimeout(() => {
-                const columns = data.slice(0, 5).map(d => [d.name.common, d.population]);
-                chartInstance = c3.generate({
-                    data: { columns: columns, type: 'pie' },
-                    bindto: '#chartEXT3_YHX'
-                });
-            }, 100);
+        externalData = []; // Limpiamos datos anteriores
+        try {
+            // OJO: Tendrás que crear esta ruta en tu backend (te lo explico abajo)
+            const res = await fetch("/api/proxy-crypto"); 
+            if (res.ok) {
+                const json = await res.json();
+                // CoinCap devuelve los datos dentro de un objeto llamado 'data'
+                externalData = json.data || json; 
+            }
+        } catch (error) {
+            console.error("Error al cargar el proxy de criptos:", error);
         }
     }
 
@@ -574,7 +575,7 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         <button class="btn btn-outline-primary m-1" onclick={loadG27}>Grupo 27 (ECharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt1}>FakeStore (ApexCharts)</button>
         <button class="btn btn-outline-success m-1" onclick={loadExt2}>Rick&Morty (Doughnut)</button>
-        <button class="btn btn-outline-danger m-1" onclick={loadExt3Proxy}>Países PROXY (C3.js)</button>
+        <button class="btn btn-dark col-auto m-1" onclick={loadCryptoProxy}>Ext 3 (Criptos Proxy)</button>
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones SMB</h1>
@@ -635,9 +636,34 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             <h3>👽 Rick and Morty API</h3>
             <canvas id="chartEXT2_YHX"></canvas>
 
-        {:else if currentIntegration === "YHX_EXT3"}
-            <h3>🌍 REST Countries (Vía Proxy)</h3>
-            <div id="chartEXT3_YHX"></div>
+        {:else if currentIntegration === "CRYPTO_PROXY"}
+            <h3>💰 Top Criptomonedas (vía Proxy)</h3>
+            <p class="small text-muted">Datos obtenidos de CoinCap API a través de nuestro backend</p>
+            
+            {#if externalData.length > 0}
+                <table class="table table-hover mt-3 shadow-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Nombre</th>
+                            <th>Símbolo</th>
+                            <th>Precio (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each externalData.slice(0, 10) as coin}
+                            <tr>
+                                <td>{coin.rank}</td>
+                                <td><strong>{coin.name}</strong></td>
+                                <td><span class="badge bg-secondary">{coin.symbol}</span></td>
+                                <td>${parseFloat(coin.priceUsd).toFixed(2)}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            {:else}
+                <div class="alert alert-info">Cargando datos del mercado a través del proxy...</div>
+            {/if}
 
         {:else if currentIntegration === "SMB_G18"}
             <h3>Healthy Diet</h3>
