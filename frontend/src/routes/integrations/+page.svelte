@@ -94,11 +94,12 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             const data = await res.json();
             setTimeout(() => {
                 const options = {
-                    chart: { type: 'bar', height: 400 },
-                    plotOptions: { bar: { horizontal: true } },
-                    series: [{ name: 'Precio ($)', data: data.slice(0, 5).map(d => d.price) }],
-                    labels: data.slice(0, 5).map(d => d.title.substring(0, 15) + '...'),
-                    colors: ['#f39c12']
+                    chart: { type: 'pie', height: 350 }, // Cambiado a 'pie'
+                // En ApexCharts, los gráficos circulares llevan la data directa en 'series'
+                series: data.slice(0, 5).map(d => d.price), 
+                // Y los nombres en 'labels'
+                labels: data.slice(0, 5).map(d => d.title.substring(0,10)),
+                title: { text: 'Precio de los primeros 5 productos' }
                 };
                 chartInstance = new ApexCharts(document.querySelector("#chartEXT1_YHX"), options);
                 chartInstance.render();
