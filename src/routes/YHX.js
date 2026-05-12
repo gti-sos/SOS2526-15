@@ -202,4 +202,19 @@ export function loadBackendYHX(app) {
             res.sendStatus(204);
         });
     });
+
+    // --- PROXY PARA CRIPTOMONEDAS (CoinCap) ---
+    app.get(`${API_URL}/proxy-crypto`, async (req, res) => {
+        try {
+            // Hacemos la petición a la API original desde nuestro servidor
+            const response = await fetch('https://api.coincap.io/v2/assets?limit=10');
+            const data = await response.json();
+            
+            // Devolvemos los datos a nuestro frontend
+            res.json(data);
+        } catch (error) {
+            console.error("Error en el proxy:", error);
+            res.status(500).send("Error interno del servidor proxy");
+        }
+    });
 }
