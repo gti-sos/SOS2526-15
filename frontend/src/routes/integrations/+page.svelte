@@ -139,7 +139,7 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
         externalData = []; // Limpiamos datos anteriores
         try {
             // OJO: Tendrás que crear esta ruta en tu backend (te lo explico abajo)
-            const res = await fetch("https://sos2526-15.onrender.com/api/v1/population-densities/proxy-crypto"); 
+            const res = await fetch("/api/v1/population-densities/proxy-crypto"); 
             if (res.ok) {
                 const json = await res.json();
                 // CoinCap devuelve los datos dentro de un objeto llamado 'data'

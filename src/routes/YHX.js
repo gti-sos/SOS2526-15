@@ -40,6 +40,21 @@ export function loadBackendYHX(app) {
         });
     });
 
+    // --- PROXY PARA CRIPTOMONEDAS (CoinCap) ---
+    app.get(`${API_URL}/proxy-crypto`, async (req, res) => {
+        try {
+            // Hacemos la petición a la API original desde nuestro servidor
+            const response = await fetch('https://api.coincap.io/v2/assets?limit=10');
+            const data = await response.json();
+            
+            // Devolvemos los datos a nuestro frontend
+            res.json(data);
+        } catch (error) {
+            console.error("Error en el proxy:", error);
+            res.status(500).send("Error interno del servidor proxy");
+        }
+    });
+    
     // ================= MIDDLEWARES (405 Method Not Allowed) =================
     app.all(API_URL, (req, res, next) => {
         if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE" && req.method !== "PUT") {
@@ -201,20 +216,5 @@ export function loadBackendYHX(app) {
             if (numRemoved === 0) return res.status(404).json({});
             res.sendStatus(204);
         });
-    });
-
-    // --- PROXY PARA CRIPTOMONEDAS (CoinCap) ---
-    app.get(`${API_URL}/proxy-crypto`, async (req, res) => {
-        try {
-            // Hacemos la petición a la API original desde nuestro servidor
-            const response = await fetch('https://api.coincap.io/v2/assets?limit=10');
-            const data = await response.json();
-            
-            // Devolvemos los datos a nuestro frontend
-            res.json(data);
-        } catch (error) {
-            console.error("Error en el proxy:", error);
-            res.status(500).send("Error interno del servidor proxy");
-        }
     });
 }
