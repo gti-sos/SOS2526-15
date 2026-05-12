@@ -150,14 +150,13 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
                 // Esperamos un poco a que el HTML exista para pintar la gráfica
                 setTimeout(() => {
                     new ApexCharts(document.querySelector("#chartProxy_YHX"), {
-                        chart: { type: 'bar', height: 400 },
-                        title: { text: 'Valor de 1 EUR en otras divisas', align: 'center' },
-                        series: [{ name: 'Valor de Cambio', data: values }],
+                        chart: { type: 'radar', height: 400 }, // ¡CAMBIADO A RADAR!
+                        title: { text: 'Valor de 1 EUR frente a otras divisas', align: 'center' },
+                        series: [{ name: 'Tipo de Cambio', data: values }],
                         xaxis: { categories: currencies },
-                        colors: ['#28a745'], // Un verde tipo financiero
-                        plotOptions: {
-                            bar: { borderRadius: 4, horizontal: false }
-                        }
+                        stroke: { width: 2, colors: ['#008FFB'] },
+                        fill: { opacity: 0.2, colors: ['#008FFB'] },
+                        markers: { size: 4, colors: ['#fff'], strokeColors: '#008FFB', strokeWidth: 2 }
                     }).render();
                 }, 100);
             }
