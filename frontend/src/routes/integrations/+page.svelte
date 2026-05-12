@@ -17,7 +17,7 @@
         const containers = ['chartG10', 'chartG16', 'chartEXT1', 'chartGITHUB', 
                         'chartG14', 'chartG18', 'chartG27', 'chartEXT1_YHX', 
                         'chartEXT2_YHX', 'chartEXT3_YHX', 'chartHealthyDiet', 'chartSpaceLaunches', 'chartGrowthRates'
-                        , 'POKEMON_PROXY', 'chartBreweries', 'chartCatFacts'];
+                        , 'chartBreweries', 'chartPopulation'];
         containers.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
@@ -155,308 +155,410 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
     let launchesData = $state([]);
     let growthData = $state([]);
     let breweryData = $state([]);
-    let pokemonData = $state([]);
+    let educationData = $state([]);
     let catFacts = $state([]);
+    let smbData = $state([]);
 
     async function loadHealthyDiet() {
 
         clearContainers();
 
         const res = await fetch(
-                "https://sos2526-18.onrender.com/api/v1/cost-of-healthy-diet-by-countries"
-            );
-
-            if(res.ok){
-
-                healthyDietData = await res.json();
-
-                currentIntegration = "SMB_G18";
-
-                setTimeout(() => {
-
-                    Highcharts.chart('chartHealthyDiet', {
-
-                        chart: {
-                            type: 'area'
-                        },
-
-                        title: {
-                            text: 'Healthy Diet Cost'
-                        },
-
-                        xAxis: {
-                            categories: healthyDietData
-                                .slice(0,10)
-                                .map(d => d.country)
-                        },
-
-                        series: [{
-                            name: 'Healthy Diet Cost',
-                            data: healthyDietData
-                                .slice(0,10)
-                                .map(d => d.cost_healthy_diet_ppp_usd)
-                        }]
-                    });
-
-                },100);
-            }
-        }
-    async function loadSpaceLaunches() {
-
-        clearContainers();
-
-        const res = await fetch(
-            "https://space-launches-8cix.onrender.com/api/v2/space-launches"
+            "https://sos2526-18.onrender.com/api/v1/cost-of-healthy-diet-by-countries?date=2022"
         );
 
-        if(res.ok){
+        const myRes = await fetch(
+            "/api/v2/minimum-interprofessional-wages?date=2022"
+        );
 
-            launchesData = await res.json();
+        if(res.ok && myRes.ok){
 
-            currentIntegration = "SMB_G14";
+            healthyDietData = await res.json();
+
+            smbData = await myRes.json();
+
+            let integratedData = [];
+
+            healthyDietData.forEach(diet => {
+
+                let smb = smbData.find(s =>
+                    s.country.toLowerCase() === diet.country.toLowerCase()
+                );
+
+                if(smb){
+
+                    integratedData.push({
+
+                        country: diet.country,
+
+                        healthyDiet: diet.cost_healthy_diet_ppp_usd,
+
+                        minimumWage: smb.nmw_on_dollar
+                    });
+                }
+            });
+
+            currentIntegration = "SMB_G18";
 
             setTimeout(() => {
 
-                const success = launchesData.filter(
-                    d => d.mission_status === "Success"
-                ).length;
+                Highcharts.chart('chartHealthyDiet', {
 
-                const failure = launchesData.filter(
-                    d => d.mission_status === "Failure"
-                ).length;
-
-                const ctx = document
-                    .getElementById("chartSpaceLaunches")
-                    .getContext("2d");
-
-                chartInstance = new Chart(ctx, {
-
-                    type: "radar",
-
-                    data: {
-
-                        labels: ["Success", "Failure"],
-
-                        datasets: [{
-                            label: "Space Launches",
-                            data: [success, failure],
-
-                            backgroundColor: "rgba(54, 162, 235, 0.2)",
-                            borderColor: "rgba(54, 162, 235, 1)",
-                            pointBackgroundColor: "rgba(255, 99, 132, 1)",
-                            pointBorderColor: "#fff",
-                            pointHoverBackgroundColor: "#fff",
-                            pointHoverBorderColor: "rgba(255, 99, 132, 1)"
-                        }]
+                    chart: {
+                        type: 'area'
                     },
 
-                    options: {
+                    title: {
+                        text: 'Healthy Diet vs Minimum Wage'
+                    },
 
-                        responsive: true,
+                    xAxis: {
+                        categories: integratedData
+     
+                            .map(d => d.country)
+                    },
 
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: "Success vs Failure Launches"
-                            }
+                    series: [
+
+                        {
+                            name: 'Healthy Diet Cost',
+                            data: integratedData
+                           
+                                .map(d => d.healthyDiet)
                         },
 
-                        scales: {
-                            r: {
-                                beginAtZero: true
-                            }
+                        {
+                            name: 'Minimum Wage',
+                            data: integratedData
+                             
+                                .map(d => d.minimumWage)
                         }
-                    }
+                    ]
                 });
 
             },100);
         }
     }
-    async function loadGrowthRates() {
-
+    async function loadSpaceLaunches() {
         clearContainers();
 
-        const res = await fetch(
-            "https://sos2526-12.onrender.com/api/v2/birth-death-growth-rates"
-        );
+        const [resSpace, resSmb] = await Promise.all([
+            fetch("https://space-launches-8cix.onrender.com/api/v2/space-launches"),
+            fetch("/api/v2/minimum-interprofessional-wages?date=2022") 
+        ]);
 
-        if(res.ok){
+        if (resSpace.ok && resSmb.ok) {
+            const spaceData = await resSpace.json();
+            const smbData = await resSmb.json();
 
-            growthData = await res.json();
+            let integratedData = [];
+
+            smbData.forEach(smb => {
+
+                const successCount = spaceData.filter(launch => 
+                    launch.country.trim().toLowerCase() === smb.country.trim().toLowerCase() &&
+                    launch.mission_status === "Success"
+                ).length;
+
+                if (successCount > 0) {
+                    integratedData.push({
+                        country: smb.country.toUpperCase(),
+                        successLaunches: successCount,
+                        salaryIndex: smb.nmw_on_dollar / 100 
+                    });
+                }
+            });
+
+            currentIntegration = "SMB_G14";
+            setTimeout(() => {
+                const ctx = document.getElementById("chartSpaceLaunches").getContext("2d");
+
+                if (window.chartInstanceSpace) {
+                    window.chartInstanceSpace.destroy();
+                }
+
+                window.chartInstanceSpace = new Chart(ctx, {
+                    type: "radar",
+                    data: {
+                        labels: integratedData.map(d => d.country),
+                        datasets: [
+                            {
+                                label: "Lanzamientos Exitosos (Total)",
+                                data: integratedData.map(d => d.successLaunches),
+                                fill: true,
+                                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                                borderColor: "rgb(54, 162, 235)",
+                                pointBackgroundColor: "rgb(54, 162, 235)",
+                            },
+                            {
+                                label: "Índice Salarial (Salario/100)",
+                                data: integratedData.map(d => d.salaryIndex),
+                                fill: true,
+                                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                                borderColor: "rgb(255, 99, 132)",
+                                pointBackgroundColor: "rgb(255, 99, 132)",
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "Relación Salario Mínimo vs Éxito Espacial por País"
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { display: true },
+                                suggestedMin: 0
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+    }
+   async function loadGrowthRates() {
+        clearContainers();
+
+        const [res, myRes] = await Promise.all([
+            fetch("https://sos2526-12.onrender.com/api/v2/birth-death-growth-rates?year=2022"),
+            fetch("/api/v2/minimum-interprofessional-wages?date=2022")
+        ]);
+
+        if (res.ok && myRes.ok) {
+            const growthData = await res.json();
+            const smbData = await myRes.json();
+
+            const integratedData = growthData
+                .map(growth => {
+
+                    const smb = smbData.find(s => 
+                        s.country.trim().toLowerCase() === growth.country_name.trim().toLowerCase()
+                    );
+
+                    if (smb) {
+                        return {
+                            country: growth.country_name,
+                            birthRate: growth.crude_birth_rate,
+                            deathRate: growth.crude_death_rate,
+                            growthRate: growth.growth_rate,
+                            minimumWage: smb.nmw_on_dollar
+                        };
+                    }
+                    return null;
+                })
+                .filter(item => item !== null);
 
             currentIntegration = "SMB_G12";
 
             setTimeout(() => {
+                const ctx = document.getElementById("chartGrowthRates").getContext("2d");
+                
+                if (window.chartInstance) {
+                    window.chartInstance.destroy();
+                }
 
-                const ctx = document
-                    .getElementById("chartGrowthRates")
-                    .getContext("2d");
-
-                chartInstance = new Chart(ctx, {
-
+                window.chartInstance = new Chart(ctx, {
                     type: "bar",
-
                     data: {
-
-                        labels: growthData
-                            .slice(0,8)
-                            .map(d => d.country_name),
-
+                        labels: integratedData.map(d => d.country),
                         datasets: [
-
                             {
                                 label: "Birth Rate",
-
-                                data: growthData
-                                    .slice(0,8)
-                                    .map(d => d.crude_birth_rate)
+                                data: integratedData.map(d => d.birthRate),
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)'
                             },
-
                             {
                                 label: "Death Rate",
-
-                                data: growthData
-                                    .slice(0,8)
-                                    .map(d => d.crude_death_rate)
+                                data: integratedData.map(d => d.deathRate),
+                                backgroundColor: 'rgba(255, 99, 132, 0.5)'
                             },
-
                             {
                                 label: "Growth Rate",
-
-                                data: growthData
-                                    .slice(0,8)
-                                    .map(d => d.growth_rate)
+                                data: integratedData.map(d => d.growthRate),
+                                backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                            },
+                            {
+                                label: "Min. Wage ($)",
+                                data: integratedData.map(d => d.minimumWage),
+                                backgroundColor: 'rgba(255, 206, 86, 0.5)'
                             }
                         ]
                     },
-
                     options: {
-
                         responsive: true,
-
                         plugins: {
                             title: {
                                 display: true,
-                                text: "Birth / Death / Growth Rates"
+                                text: `Comparativa: Tasas vs Salario Mínimo)`
                             }
                         }
                     }
                 });
-
-            },100);
+            }, 100);
+        } else {
+            console.error("Error al conectar con las APIs");
         }
     }
-    async function loadPokemonProxy() {
-
+    async function loadEducationProxy() {
         clearContainers();
+        
+        const countriesToCompare = ["Spain", "Germany", "Canada", "France", "Italy"];
+        let tempIntegratedData = [];
 
-        const res = await fetch(
-            "/api/v2/minimum-interprofessional-wages/proxy-pokemon"
-        );
+        const resSmb = await fetch("/api/v2/minimum-interprofessional-wages");
+        
+        if (resSmb.ok) {
+            const smbData = await resSmb.json();
 
-        if(res.ok){
+            for (const country of countriesToCompare) {
+                const resUni = await fetch(`/api/v2/minimum-interprofessional-wages/proxy-universities?country=${country}`);
+                if (resUni.ok) {
+                    const unis = await resUni.json();
+                    const smb = smbData.find(s => s.country.toLowerCase() === country.toLowerCase());
 
-            const data = await res.json();
-
-            externalData = data;
-
-            currentIntegration = "POKEMON_PROXY";
+                    if (smb) {
+                        tempIntegratedData.push({
+                            country: country,
+                            numUniversities: unis.length,
+                            salary: smb.nmw_on_dollar
+                        });
+                    }
+                }
+            }
+            educationData = tempIntegratedData;
+            currentIntegration = "EDUCATION_PROXY";
         }
     }
 
 
     async function loadBreweries() {
-
         clearContainers();
 
-        const res = await fetch(
-            "https://api.openbrewerydb.org/v1/breweries?per_page=10"
-        );
+        const [resBrew, resSmb] = await Promise.all([
+            fetch("https://api.openbrewerydb.org/v1/breweries?by_country=united_states&per_page=200"),
+            fetch("/api/v2/minimum-interprofessional-wages?country=united%20states&date=2026")
+        ]);
 
-        if(res.ok){
+        if (resBrew.ok && resSmb.ok) {
+            const brewData = await resBrew.json();
+            const smbData = await resSmb.json();
+            const salary = smbData[0]?.nmw_on_dollar || 0;
 
-            breweryData = await res.json();
+            const cityCounts = brewData.reduce((acc, b) => {
+                acc[b.city] = (acc[b.city] || 0) + 1;
+                return acc;
+            }, {});
+
+            const sortedCities = Object.entries(cityCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
 
             currentIntegration = "BREWERIES";
 
             setTimeout(() => {
-
                 Highcharts.chart('chartBreweries', {
-
-                    chart: {
-                        type: 'column'
+                    chart: { type: 'bar' },
+                    title: { text: 'Cervecerías por Ciudad vs Salario Nacional (USA)' },
+                    xAxis: { 
+                        categories: sortedCities.map(c => c[0]),
+                        title: { text: 'Ciudades' }
                     },
-
-                    title: {
-                        text: 'Breweries by City'
+                    yAxis: {
+                        min: 0,
+                        title: { text: 'Cantidad / Salario ($)', align: 'high' }
                     },
-
-                    xAxis: {
-                        categories: breweryData.map(b => b.city)
+                    plotOptions: {
+                        bar: { dataLabels: { enabled: true } }
                     },
-
                     series: [{
-                        name: 'Breweries',
-                        data: breweryData.map(() => 1)
+                        name: 'Nº de Cervecerías',
+                        data: sortedCities.map(c => c[1]),
+                        color: '#f39c12'
+                    }, {
+                        name: 'Salario Mínimo ($)',
+                        type: 'scatter', 
+                        data: sortedCities.map((c, i) => [i, salary]),
+                        color: '#2c3e50',
+                        marker: {
+                            symbol: 'diamond',
+                            radius: 6
+                        }
                     }]
                 });
-            },100);
+            }, 150);
         }
     }
-    async function loadCatFacts() {
-
+    async function loadPopulationIntegration() {
         clearContainers();
+        
+        const countries = ["Spain", "France", "Italy", "Germany"];
+        let integratedData = [];
 
-        const res = await fetch(
-            "https://catfact.ninja/facts?limit=10"
-        );
+        const resSmb = await fetch("/api/v2/minimum-interprofessional-wages?date=2022");
+        
+        if (resSmb.ok) {
+            const smbData = await resSmb.json();
 
-        if(res.ok){
+            for (const cName of countries) {
+                const resPop = await fetch("https://countriesnow.space/api/v0.1/countries/population/cities", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ "city": cName === "Spain" ? "Madrid" : cName === "France" ? "Paris" : "Berlin" })
+                });
 
-            const data = await res.json();
+                if (resPop.ok) {
+                    const popJson = await resPop.json();
+                    const smb = smbData.find(s => s.country.toLowerCase() === cName.toLowerCase());
 
-            catFacts = data.data;
+                    if (smb && !popJson.error) {
+                        const lastPop = popJson.data.populationCounts.at(-1); 
+                        integratedData.push({
+                            name: `${popJson.data.city} (${cName})`,
+                            x: parseInt(lastPop.value),
+                            y: smb.nmw_on_dollar     
+                        });
+                    }
+                }
+            }
 
-            currentIntegration = "CAT_FACTS";
+            currentIntegration = "POPULATION_SMI";
 
             setTimeout(() => {
-
-                Highcharts.chart('chartCatFacts', {
-
-                    chart: {
-                        type: 'scatter',
-                        zoomType: 'xy'
-                    },
-
-                    title: {
-                        text: 'Cat Facts Length'
-                    },
-
+                Highcharts.chart('chartPopulation', {
+                    chart: { type: 'scatter', zoomType: 'xy' },
+                    title: { text: 'Relación Población Capital vs Salario Mínimo' },
                     xAxis: {
-                        title: {
-                            text: 'Fact Number'
-                        }
+                        title: { text: 'Población (Habitantes)' },
+                        gridLineWidth: 1
                     },
-
                     yAxis: {
-                        title: {
-                            text: 'Characters'
+                        title: { text: 'Salario Mínimo (USD)' }
+                    },
+                    legend: { enabled: false },
+                    plotOptions: {
+                        scatter: {
+                            marker: {
+                                radius: 8,
+                                states: { hover: { enabled: true, lineDashStyle: 'solid' } }
+                            },
+                            tooltip: {
+                                headerFormat: '<b>{point.key}</b><br>',
+                                pointFormat: 'Población: {point.x} hab.<br>SMI: {point.y} $'
+                            }
                         }
                     },
-
                     series: [{
-                        name: 'Fact Length',
-                        data: catFacts.map((f, index) => [
-                            index + 1,
-                            f.length
-                        ])
+                        name: 'País',
+                        color: 'rgba(223, 83, 83, .5)',
+                        data: integratedData
                     }]
                 });
-
-            },100);
+            }, 100);
         }
     }
-
 
 </script>
 
@@ -483,17 +585,14 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones SMB</h1>
-    <div class="row g-2 justify-content-center mb-5">
-        <button class="btn btn-outline-warning m-1" onclick={loadHealthyDiet}> Healthy Diet (G18) </button>
-    </div>
 
     <div class="row g-2 justify-content-center mb-5">
         <button class="btn btn-outline-warning m-1" onclick={loadHealthyDiet}> Healthy Diet (G18) </button>
         <button class="btn btn-outline-info m-1" onclick={loadSpaceLaunches}> Space Launches (G14) </button>
         <button class="btn btn-outline-success m-1" onclick={loadGrowthRates}> Growth Rates (G12) </button>
-        <button class="btn btn-outline-success m-1" onclick={loadPokemonProxy}> Pokémon Proxy </button>
+        <button class="btn btn-outline-success m-1" onclick={loadEducationProxy}> Education Proxy </button>
         <button class="btn btn-outline-dark m-1" onclick={loadBreweries}> Breweries API </button>
-        <button class="btn btn-outline-secondary m-1" onclick={loadCatFacts}>Cat Facts</button>
+        <button class="btn btn-outline-secondary m-1" onclick={loadPopulationIntegration}>Population</button>
     </div>
     <div class="content-area p-4 border rounded bg-white shadow-sm" style="min-height: 500px;">
         {#if currentIntegration === "MENU"}
@@ -567,33 +666,43 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
             <div style="width:100%; max-width:900px; margin:auto;">
                 <canvas id="chartGrowthRates"></canvas>
             </div>
-        {:else if currentIntegration === "POKEMON_PROXY"}
+        {:else if currentIntegration === "EDUCATION_PROXY"}
 
-            <h3>Pokemon API (Proxy)</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>🎓 Educación vs Economía</h3>
+                <span class="badge bg-info text-dark">Fuente: Hipolabs + API SMI</span>
+            </div>
 
-            <table class="table">
+            <p>Comparativa del número de universidades registradas frente al Salario Mínimo Interprofesional (SMI).</p>
 
-                <thead>
+            <table class="table table-hover align-middle shadow-sm">
+                <thead class="table-dark">
                     <tr>
-                        <th>Nombre</th>
-                        <th>URL</th>
+                        <th>País</th>
+                        <th class="text-center">Nº Universidades</th>
+                        <th class="text-center">Salario Mínimo (USD)</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
-                    {#each externalData as pokemon}
-
+                    {#each educationData as item}
                         <tr>
-                            <td>{pokemon.name}</td>
-                            <td>{pokemon.url}</td>
+                            <td class="fw-bold">{item.country}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-primary" style="font-size: 0.9em;">
+                                    {item.numUniversities}
+                                </span>
+                            </td>
+                            <td class="text-center text-success fw-bold">
+                                {item.salary} $
+                            </td>
                         </tr>
-
                     {/each}
-
                 </tbody>
-
             </table>
+            
+            <div class="alert alert-light border-start border-4 border-info">
+                <small><strong>Nota:</strong> Los datos de universidades provienen de la API de Hipolabs, mientras que los salarios corresponden al SMI de 2022.</small>
+            </div>
             {:else if currentIntegration === "BREWERIES"}
 
                 <h3>Breweries API</h3>
@@ -601,11 +710,11 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
                 <div id="chartBreweries"
                     style="width:100%; height:400px;">
                 </div>
-            {:else if currentIntegration === "CAT_FACTS"}
+            {:else if currentIntegration === "POPULATION_SMI"}
 
-                <h3>Cat Facts API</h3>
+                <h3>Population API</h3>
 
-                <div id="chartCatFacts"
+                <div id="chartPopulation"
                     style="width:100%; height:400px;">
                 </div>
         {/if}

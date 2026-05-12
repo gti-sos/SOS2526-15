@@ -18,7 +18,18 @@ export function loadBackendSMBv2(app){
         { country: "spain", date: 2024, national_currency_minimum_wage: 1381.00, nmw_on_dollar: 1461.90, percentage_change: 0 },
         { country: "canada", date: 2025, national_currency_minimum_wage: 2872.10, nmw_on_dollar: 1994.50, percentage_change: 0.81 },
         { country: "portugal", date: 2026, national_currency_minimum_wage: 1073.00, nmw_on_dollar: 1260.80, percentage_change: 5.71 },
-        { country: "germany", date: 2026, national_currency_minimum_wage: 2343.0, nmw_on_dollar: 2753.0, percentage_change: 8.42 }
+        { country: "germany", date: 2026, national_currency_minimum_wage: 2343.0, nmw_on_dollar: 2753.0, percentage_change: 8.42 },
+        { country: "spain", date: 2022, national_currency_minimum_wage: 1166.7, nmw_on_dollar: 1321.4, percentage_change: 0},
+        { country: "china", date: 2022, national_currency_minimum_wage: 1930.0, nmw_on_dollar: 286.5, percentage_change: 16.33},
+        { country: "brazil", date: 2022, national_currency_minimum_wage: 1212.0, nmw_on_dollar: 234.7, percentage_change: 11.29},
+        { country: "egypt", date: 2022, national_currency_minimum_wage: 3000.0, nmw_on_dollar: 156.6, percentage_change: 100.55},
+        { country: "united kingdom", date: 2022, national_currency_minimum_wage: 1621.1, nmw_on_dollar: 1940.4, percentage_change: 12.91},
+        { country: "zambia", date: 2022, national_currency_minimum_wage: 1.1, nmw_on_dollar: 62.0, percentage_change: 50.0},
+        { country: "mongolia", date: 2022, national_currency_minimum_wage: 550000.0, nmw_on_dollar: 193.5, percentage_change: 42.46},
+        { country: "liberia", date: 2022, national_currency_minimum_wage: 91.0, nmw_on_dollar: 0.60, percentage_change: 0},
+        { country: "venezuela", date: 2022, national_currency_minimum_wage: 130.0, nmw_on_dollar: 22.15, percentage_change: 0},
+        { country: "latvia", date: 2022, national_currency_minimum_wage: 500.0, nmw_on_dollar: 526.5, percentage_change: 0},
+        { country: "ethiopia", date: 2022, national_currency_minimum_wage: 420.0, nmw_on_dollar: 24.9, percentage_change: -91.43}
     ];
     const DOCUMENTATION = "https://documenter.getpostman.com/view/52405032/2sBXigMDHy";
 
@@ -49,25 +60,17 @@ export function loadBackendSMBv2(app){
 
     });
     // PROXY
-    app.get(`${API_URL_SMB}/proxy-pokemon`, async (req, res) => {
-
+    app.get(`${API_URL_SMB}/proxy-universities`, async (req, res) => {
+        const countryName = req.query.country; 
+        
         try {
-
-            const response = await fetch(
-                "https://pokeapi.co/api/v2/pokemon?limit=10"
-            );
-
+            const response = await fetch(`http://universities.hipolabs.com/search?country=${countryName}`);
             const data = await response.json();
+            
 
-            res.status(200).json(data.results);
-
+            res.status(200).json(data);
         } catch (error) {
-
-            console.error("proxy-pokemon error:", error.message);
-
-            res.status(502).json({
-                error: "Error en el proxy de Pokemon"
-            });
+            res.status(500).json({ error: "Error en el proxy" });
         }
     });
         // 405 para SMB
