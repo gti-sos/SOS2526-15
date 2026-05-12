@@ -563,13 +563,13 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
 <main class="container py-4">
     <h1 class="text-center mb-4">🧩 Integraciones JAM</h1>
     <div class="row g-2 justify-content-center mb-5">
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-meteoritos">☄️ Meteoritos (G14)</a>
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-pandemias">🦠 Pandemias (G10)</a>
-        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-ev-sales">⚡ EV Sales (G16)</a>
-        <button class="pointer btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-food">🍎 Food (G18)</a>
-        <button class="btn btn-sm btn-outline-success col-auto m-1" href="/integrations/jam-paises">🌍 Países (Proxy)</a>
-        <button class="btn btn-sm btn-outline-dark col-auto m-1" href="/integrations/jam-github">🐙 GitHub (OAuth)</a>
-        <button class="btn btn-sm btn-outline-danger col-auto m-1" href="/integrations/jam-tv">🎬 TV Series (EXT)</a>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-meteoritos">☄️ Meteoritos (G14)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-pandemias">🦠 Pandemias (G10)</button>
+        <button class="btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-ev-sales">⚡ EV Sales (G16)</button>
+        <button class="pointer btn btn-sm btn-outline-primary col-auto m-1" href="/integrations/jam-food">🍎 Food (G18)</button>
+        <button class="btn btn-sm btn-outline-success col-auto m-1" href="/integrations/jam-paises">🌍 Países (Proxy)</button>
+        <button class="btn btn-sm btn-outline-dark col-auto m-1" href="/integrations/jam-github">🐙 GitHub (OAuth)</button>
+        <button class="btn btn-sm btn-outline-danger col-auto m-1" href="/integrations/jam-tv">🎬 TV Series (EXT)</button>
     </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones YHX</h1>
