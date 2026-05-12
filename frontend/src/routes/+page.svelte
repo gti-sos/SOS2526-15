@@ -1,10 +1,11 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+
 
 
 <script>
 // lo nuevo //
     const repoUrl = "https://github.com/gti-sos/SOS2526-15"; 
+    const AnaUrl = "/analytics";
+    const aboutUrl = "/about";  
 </script>
 
 <svelte:head>
@@ -19,6 +20,12 @@
         <a href={repoUrl} target="_blank" rel="noopener noreferrer" class="btn-github">
             📁 Repositorio de GitHub del Equipo
         </a>
+        <a href={AnaUrl} target="_blank" rel="noopener noreferrer" class="btn-github">
+            📈 Analítica grupal
+        </a>
+        <a href={aboutUrl} target="_blank" rel="noopener noreferrer" class="btn-github">
+            ▶️ Videos Explicatorios
+        </a>
     </div>
 
     <h2>Componentes del Equipo y APIs</h2>
@@ -32,6 +39,7 @@
                 <li>⚙️ <a href="/api/v1/happiness-indices">URL Base API (v1)</a></li>
                 <li>⚙️ <a href="/api/v2/happiness-indices">URL Base API (v2)</a></li>
                 <li>📚 <a href="https://documenter.getpostman.com/view/52395798/2sBXigMtLE" target="_blank">Documentación Postman</a></li>
+                <li>📈 <a href="/analytics/happiness-indices" target="_blank">Analítica</a></li>
             </ul>
         </section>
 
@@ -42,6 +50,7 @@
                 <li>🖥️ <a href="/population-densities">Interfaz Visual (Front-end)</a></li>
                 <li>⚙️ <a href="/api/v1/population-densities">URL Base API (v1)</a></li>
                 <li>📚 <a href="/api/v1/population-densities/docs" target="_blank">Documentación Postman</a></li>
+                <li>📈 <a href="/analytics/population-densities" target="_blank">Analítica</a></li>
             </ul>
         </section>
 
@@ -53,6 +62,7 @@
                 <li>⚙️ <a href="/api/v1/minimum-interprofessional-wages">URL Base API (v1)</a></li>
                 <li>⚙️ <a href="/api/v2/minimum-interprofessional-wages">URL Base API (v2)</a></li>
                 <li>📚 <a href="/api/v2/minimum-interprofessional-wages/docs" target="_blank">Documentación Postman</a></li>
+                <li>📈 <a href="/analytics/minimum-interprofessional-wages" target="_blank">Analítica</a></li>
             </ul>
         </section>
     </div>
