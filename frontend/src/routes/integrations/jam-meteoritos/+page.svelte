@@ -3,67 +3,73 @@
     import Chart from 'chart.js/auto';
 
     let loading = $state(true);
+    let canvasElement = $state();
 
     onMount(async () => {
-       
-        const [resMet, resSmi] = await Promise.all([
-            fetch("https://sos2526-14.onrender.com/api/v2/meteorite-landings"),
-            fetch("https://sos2526-15.onrender.com/api/v2/happiness-indices")
-        ]);
+        try {
+            const [resMet, resHap] = await Promise.all([
+                fetch("https://sos2526-14.onrender.com/api/v2/meteorite-landings"),
+                fetch("https://sos2526-15.onrender.com/api/v2/happiness-indices") // TU URL
+            ]);
 
-        if (resMet.ok && resSmi.ok) {
-            const meteoriteData = await resMet.json();
-            const smiData = await resSmi.json();
+            if (resMet.ok && resHap.ok) {
+                const meteoriteData = await resMet.json();
+                const happinessData = await resHap.json();
 
-            const targetCountries = ["Spain", "France", "Germany", "Italy", "USA"];
-            
-            const integratedData = targetCountries.map(country => {
-                const count = meteoriteData.filter(m => 
-                    m.country?.toLowerCase() === country.toLowerCase()
-                ).length;
+                const targetCountries = ["Spain", "France", "Germany", "Italy", "USA"];
+                
+                const integratedData = targetCountries.map(country => {
+                    // Contamos meteoritos
+                    const count = meteoriteData.filter(m => 
+                        m.country?.toLowerCase() === country.toLowerCase()
+                    ).length;
 
-                const smi = smiData.find(s => 
-                    s.country.toLowerCase() === country.toLowerCase()
-                );
+                    // Buscamos en tus datos de Felicidad
+                    const hapEntry = happinessData.find(h => 
+                        h.country.toLowerCase() === country.toLowerCase()
+                    );
 
-                return {
-                    country,
-                    meteoriteCount: count || Math.floor(Math.random() * 10) + 1, // Si la API externa no tiene datos, simulamos unos pocos para la demo
-                    salaryIndex: smi ? (smi.nmw_on_dollar / 100) : 0
-                };
-            });
+                    return {
+                        country,
+                        meteoriteCount: count,
+                        // CAMBIO AQUÍ: Usamos gdp_per_capita que sí existe en tu API
+                        // Lo multiplicamos por 5 para que la barra se vea grande comparada con los meteoritos
+                        wealthIndex: hapEntry ? (hapEntry.gdp_per_capita * 5) : 0 
+                    };
+                });
 
-            const ctx = document.getElementById('chartCombined');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: integratedData.map(d => d.country),
-                    datasets: [
-                        {
-                            label: 'Meteoritos Registrados',
-                            data: integratedData.map(d => d.meteoriteCount),
-                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                            borderColor: 'rgb(255, 99, 132)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Índice Salarial (SMI/100)',
-                            data: integratedData.map(d => d.salaryIndex),
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgb(54, 162, 235)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
+                new Chart(canvasElement, {
+                    type: 'bar',
+                    data: {
+                        labels: integratedData.map(d => d.country),
+                        datasets: [
+                            {
+                                label: 'Meteoritos Registrados',
+                                data: integratedData.map(d => d.meteoriteCount),
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                borderColor: 'rgb(255, 99, 132)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Índice de Riqueza (GDP x 5)',
+                                data: integratedData.map(d => d.wealthIndex),
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } }
                     }
-                }
-            });
+                });
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            loading = false;
         }
-        loading = false;
     });
 </script>
 
@@ -71,27 +77,21 @@
     <a href="/integrations" class="btn btn-outline-secondary mb-3">⬅️ Volver al Panel</a>
     
     <div class="card shadow-sm p-4 text-center">
-        <h3>☄️ Integración: Meteoritos vs Contexto Económico</h3>
+        <h3>☄️ Integración: Meteoritos vs Riqueza (Happiness API)</h3>
         <p class="text-muted">
-            ¿Influye la riqueza de un país en el registro de impactos? Comparamos registros de meteoritos (G14) con nuestros datos de Salario Mínimo.
+            Usando los datos de <b>PIB per cápita</b> de nuestra propia API de Felicidad.
         </p>
         <hr />
 
         {#if loading}
             <div class="py-5">
-                <div class="spinner-grow text-danger" role="status"></div>
-                <p>Analizando impactos y bases de datos...</p>
+                <div class="spinner-grow text-primary" role="status"></div>
+                <p>Cargando datos de felicidad y meteoritos...</p>
             </div>
         {/if}
 
-        <div style="width: 100%; max-width: 800px; margin: auto;">
-            <canvas id="chartCombined"></canvas>
-        </div>
-        
-        <div class="mt-4 p-3 bg-light rounded border">
-            <small class="text-muted">
-                <b>Nota de integración:</b> El "Índice Salarial" representa vuestro dato de Salario Mínimo dividido por 100 para que la escala de la gráfica sea comparable con el número de meteoritos.
-            </small>
+        <div style="width: 100%; max-width: 800px; margin: auto;" class={loading ? 'd-none' : ''}>
+            <canvas bind:this={canvasElement}></canvas>
         </div>
     </div>
 </div>
