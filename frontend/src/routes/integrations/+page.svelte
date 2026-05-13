@@ -572,15 +572,11 @@ let g26Data = $state(null); // Empezamos en null para saber si está cargando
 </script>
 
 <main class="container py-4">
-    <h1 class="text-center mb-4">🧩 Integraciones JAM</h1>
+<h1 class="text-center mb-4">🧩 Integraciones JAM</h1>
 <div class="row g-2 justify-content-center mb-5">
-    <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={() => goto('/integrations/jam-meteoritos')}>☄️ Meteoritos (G14)</button>
-    <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={() => goto('/integrations/jam-pandemias')}>🦠 Pandemias (G10)</button>
-    <button class="btn btn-sm btn-outline-primary col-auto m-1" onclick={() => goto('/integrations/jam-ev-sales')}>⚡ EV Sales (G16)</button>
-    <button class="pointer btn btn-sm btn-outline-primary col-auto m-1" onclick={() => goto('/integrations/jam-food')}>🍎 Food (G18)</button>
-    <button class="btn btn-sm btn-outline-success col-auto m-1" onclick={() => goto('/integrations/jam-paises')}>🌍 Países (Proxy)</button>
-    <button class="btn btn-sm btn-outline-dark col-auto m-1" onclick={() => goto('/integrations/jam-github')}>🐙 GitHub (OAuth)</button>
-    <button class="btn btn-sm btn-outline-danger col-auto m-1" onclick={() => goto('/integrations/jam-tv')}>🎬 TV Series (EXT)</button>
+    <button class="btn btn-outline-primary col-auto m-1" onclick={() => goto('/integrations/jam')}>
+        🧩 Ver todas las integraciones JAM
+    </button>
 </div>
 
     <h1 class="text-center mb-4">🧩 Integraciones YHX</h1>
