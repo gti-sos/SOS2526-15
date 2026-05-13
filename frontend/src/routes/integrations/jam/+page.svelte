@@ -29,95 +29,6 @@
         errorMerge = "";
         loadingMerge = false;
     }
- 
-    // --------------------------------------------------------
-    // NUEVA INTEGRACIÓN: Cruce robusto Meteoritos vs Riqueza
-    // --------------------------------------------------------
-    async function loadCruceMeteoritos() {
-        clearContainers();
-        currentIntegration = 'CRUCE_METEORITOS';
-        loadingMerge = true;
-        errorMerge = "";
-
-        try {
-            // 1. Cargamos ambas APIs a la vez de forma segura
-            // IMPORTANTE: Cambia la ruta local de felicidad si tu API se llama distinto
-            const [resMeteoritos, resFelicidad] = await Promise.all([
-                fetch('https://meteorite-landings-tvcf.onrender.com/api/v2/meteorite-landings'),
-                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
-            ]);
-
-            if (!resMeteoritos.ok || !resFelicidad.ok) {
-                throw new Error("No se pudieron obtener los datos para el cruce.");
-            }
-
-            const dataMeteoritos = await resMeteoritos.json();
-            const dataFelicidad = await resFelicidad.json();
-
-            // 2. Definimos los países que queremos mostrar en el eje X
-            const targetCountries = ['Spain', 'France', 'Germany', 'Italy', 'USA'];
-            const datosCruzados = [];
-
-            // 3. Hacemos el cruce seguro (como en el ejemplo que me mandaste)
-            targetCountries.forEach(pais => {
-                // Buscamos ignorando mayúsculas/minúsculas para evitar fallos tontos
-                const normalize = (str) => (str || "").toLowerCase().trim();
-
-                // Contamos cuántos meteoritos tiene este país (o sumamos su valor)
-                const meteoritosDelPais = dataMeteoritos.filter(m => normalize(m.country) === normalize(pais));
-                const totalMeteoritos = meteoritosDelPais.length; 
-
-                // Buscamos el PIB en tu API
-                const felicidadDelPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
-                
-                // Si la API de felicidad no tiene a "France", fallback a 0
-                const riquezaCalculada = (felicidadDelPais && felicidadDelPais.gdp) ? (felicidadDelPais.gdp * 5) : 0;
-
-                datosCruzados.push({
-                    pais: pais,
-                    meteoritos: totalMeteoritos === 0 ? 0 : totalMeteoritos,
-                    riqueza: riquezaCalculada
-                });
-            });
-
-            await tick(); // Esperamos a que Svelte pinte el <canvas>
-
-            // 4. Renderizamos la gráfica si todo ha ido bien
-            chartInstance = new Chart(document.getElementById('chartJAM_CRUCE'), {
-                type: 'bar',
-                data: {
-                    labels: datosCruzados.map(d => d.pais),
-                    datasets: [
-                        {
-                            label: 'Meteoritos Registrados',
-                            data: datosCruzados.map(d => d.meteoritos),
-                            backgroundColor: '#FF99B4' // Rosa
-                        },
-                        {
-                            label: 'Índice de Riqueza (GDP x 5)',
-                            data: datosCruzados.map(d => d.riqueza),
-                            backgroundColor: '#63B3ED' // Azul celeste
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-
-            loadingMerge = false;
-
-        } catch (error) {
-            console.error("Error en el cruce:", error);
-            errorMerge = "Error crítico al intentar realizar el cruce de datos.";
-            loadingMerge = false;
-        }
-    }
-    // --------------------------------------------------------
-
  // 1. G14: MASHUP Meteoritos vs Felicidad (Chart.js - Mixto Barras/Líneas)
     async function loadG14() {
         clearContainers();
@@ -263,7 +174,7 @@ async function loadG10() {
         currentIntegration = 'G16';
         try {
             const [resG16, resFelicidad] = await Promise.all([
-                fetch('https://sos2526-16.onrender.com/api/v2/global-ev-sales'),
+                fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales'),
                 fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
             ]);
 
@@ -304,7 +215,23 @@ async function loadG10() {
     }
  
     
- // 4. G18: MASHUP Food Supply vs Felicidad (Tabla HTML)
+ // --- 4: Función para cargar datos iniciales de G18 y los tuyos ---
+    async function cargarDatosFood() {
+        try {
+            // Despertamos su API
+            await fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts/loadInitialData');
+            // Despertamos tu API
+            await fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices/loadInitialData');
+            
+            alert("✅ Datos de Alimentación y Felicidad cargados correctamente.");
+            loadG18(); // Recarga la tabla
+        } catch(e) {
+            console.error("Error al cargar datos:", e);
+            alert("❌ Hubo un error al intentar cargar los datos iniciales.");
+        }
+    }
+
+    // 4. G18: MASHUP Food Supply vs Felicidad (Tabla HTML)
     async function loadG18() {
         clearContainers();
         currentIntegration = 'G18';
@@ -317,17 +244,24 @@ async function loadG10() {
             const dataG18 = await resG18.json();
             const dataFelicidad = await resFelicidad.json();
             
-            const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
+            const normalize = (str) => (str || "").toString().toLowerCase().replace(/_/g, ' ').trim();
             
+            // Mapeamos usando los nombres EXACTOS de su backend
             externalData = dataG18.slice(0, 15).map(itemG18 => {
-                const nombrePais = itemG18.country || itemG18.entity || itemG18.location || "";
+                const nombrePais = itemG18.country_name_en || "Desconocido";
+                const ano = itemG18.year || "—";
+                
+                // Usamos producción en toneladas en lugar de Kcal
+                const produccion = itemG18.production_tonnes === "" ? "0" : itemG18.production_tonnes;
+                const producto = itemG18.item || "—";
+
                 const felicidadMatch = dataFelicidad.find(f => normalize(f.country) === normalize(nombrePais));
                 
                 return {
                     pais: nombrePais,
-                    ano: itemG18.year || '—',
-                    kcal: itemG18.food_supply_kcal || itemG18.kcal || itemG18.utilization_amount || '—',
-                    // Vinculamos tus campos reales
+                    ano: ano,
+                    producto: producto,
+                    produccion: produccion,
                     gdp: felicidadMatch ? felicidadMatch.gdp_per_capita : 'No data',
                     score: felicidadMatch ? felicidadMatch.happiness_score : 'No data'
                 };
@@ -445,35 +379,45 @@ async function loadG10() {
             <div id="chartG16"></div>
  
       {:else if currentIntegration === 'G18'}
-        <div class="integration-info">
-            <p><strong>🍎 MASHUP: Food Supply (G18) vs Felicidad (G15)</strong></p>
-            <p>Fuente: <strong>sos2526-18-mcs-stable.onrender.com</strong> + <strong>Mi API</strong> | Método: <strong>Tabla HTML</strong></p>
+        <div class="integration-info mb-3">
+            <h3>🍎 MASHUP: Producción Agrícola (G18) vs Felicidad (G15)</h3>
+            <p class="text-muted">Fuente: <strong>sos2526-18-mcs-stable.onrender.com</strong> + <strong>Mi API</strong> | Método: <strong>Tabla HTML</strong></p>
+            
+            <button class="btn btn-outline-secondary shadow-sm" onclick={cargarDatosFood}>
+                Cargar Datos API Alimentación
+            </button>
         </div>
+
         {#if externalData && externalData.length > 0}
-            <table class="data-table">
-                <thead>
+            <table class="table table-hover table-bordered mt-3 shadow-sm">
+                <thead class="table-dark">
                     <tr>
                         <th>País</th>
-                        <th>Año (G18)</th>
-                        <th>Kcal/Persona (G18)</th>
-                        <th>PIB / GDP (Mi API)</th>
-                        <th>Puntuación Felicidad (Mi API)</th>
+                        <th>Año</th>
+                        <th>Producto</th>
+                        <th>Producción (Toneladas)</th>
+                        <th class="table-primary text-dark">PIB / GDP (Mi API)</th>
+                        <th class="table-primary text-dark">Felicidad (Mi API)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {#each externalData as row}
                         <tr>
-                            <td>{row.pais}</td>
+                            <td class="fw-bold">{row.pais}</td>
                             <td>{row.ano}</td>
-                            <td>{row.kcal}</td>
-                            <td>{row.gdp}</td>
-                            <td>{row.score}</td>
+                            <td>{row.producto}</td>
+                            <td>{row.produccion} t</td>
+                            <td>{row.gdp !== 'No data' ? `${row.gdp} $` : '—'}</td>
+                            <td>{row.score !== 'No data' ? `⭐ ${row.score}` : '—'}</td>
                         </tr>
                     {/each}
                 </tbody>
             </table>
         {:else}
-            <p style="text-align: center; margin-top: 2rem;">No hay datos cruzados disponibles o la API G18 está vacía.</p>
+            <div class="text-center mt-5 py-5 border rounded bg-light">
+                <p class="text-muted mb-0">No hay datos cargados en la API del G18.</p>
+                <p class="small text-muted">Haz clic en "Cargar Datos API Alimentación" para iniciar.</p>
+            </div>
         {/if}
  
         {:else if currentIntegration === 'PROXY'}
