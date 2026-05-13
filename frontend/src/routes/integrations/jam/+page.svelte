@@ -139,64 +139,131 @@
         } catch(e) { console.error('G14 error', e); }
     }
  
-    // 2. G10: Pandemias — ECharts Funnel (CORREGIDO)
+    // 2. G10: MASHUP Pandemias vs Felicidad (ECharts)
     async function loadG10() {
         clearContainers();
         currentIntegration = 'G10';
         try {
-            const res = await fetch('https://sos2526-10.onrender.com/api/v2/pandemics');
-            const data = await res.json();
+            const [resG10, resFelicidad] = await Promise.all([
+                fetch('https://sos2526-10.onrender.com/api/v2/pandemics'),
+                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices') // Tu API
+            ]);
+
+            const dataG10 = await resG10.json();
+            const dataFelicidad = await resFelicidad.json();
             await tick();
             
             const container = document.getElementById('chartG10');
             if (!container) return;
 
-            // Filtramos para que no salgan solo ceros. 
-            // Cogemos los 6 primeros que tengan algo de Polio, por ejemplo.
-            const dataConDatos = data.filter(d => d.polio > 0).slice(0, 6);
+            const normalize = (str) => (str || "").toLowerCase().trim();
+            const datosCruzados = [];
+            const targetCountries = ['Spain', 'France', 'Germany', 'Italy', 'Brazil'];
+
+            targetCountries.forEach(pais => {
+                // Buscamos datos en G10 (Sumamos los casos de polio de todos los años para ese país)
+                const pandemiasPais = dataG10.filter(d => normalize(d.entity) === normalize(pais) || normalize(d.country) === normalize(pais));
+                const totalPolio = pandemiasPais.reduce((sum, item) => sum + (item.polio || 0), 0);
+
+                // Buscamos datos en tu API
+                const felicidadPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
+                
+                datosCruzados.push({
+                    pais: pais,
+                    polio: totalPolio,
+                    gdp: felicidadPais ? felicidadPais.gdp : 0
+                });
+            });
 
             echarts.init(container).setOption({
-                title: { text: 'Casos de Polio (Top 6 con registros)', left: 'center' },
-                tooltip: { trigger: 'item' },
-                series: [{
-                    type: 'funnel', 
-                    left: '10%', 
-                    width: '80%',
-                    data: dataConDatos.map(d => ({
-                        value: d.polio,        // <--- Usamos el campo real
-                        name: `${d.entity} (${d.year})` // <--- 'entity' en vez de 'country'
-                    }))
-                }]
+                title: { text: 'Casos de Polio vs PIB (G10 + G15)', left: 'center' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['Casos Polio', 'PIB (GDP)'], bottom: 0 },
+                xAxis: { type: 'category', data: datosCruzados.map(d => d.pais) },
+                yAxis: [{ type: 'value', name: 'Polio' }, { type: 'value', name: 'PIB' }],
+                series: [
+                    { name: 'Casos Polio', type: 'bar', data: datosCruzados.map(d => d.polio) },
+                    { name: 'PIB (GDP)', type: 'line', yAxisIndex: 1, data: datosCruzados.map(d => d.gdp) }
+                ]
             });
         } catch(e) { console.error('G10 error', e); }
     }
- 
-    // 3. G16: EV Sales — ApexCharts RadialBar
+
+    // 3. G16: MASHUP EV Sales vs Felicidad (ApexCharts Radar)
     async function loadG16() {
         clearContainers();
         currentIntegration = 'G16';
         try {
-            const res = await fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales');
-            const data = await res.json();
+            const [resG16, resFelicidad] = await Promise.all([
+                fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales'),
+                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
+            ]);
+
+            const dataG16 = await resG16.json();
+            const dataFelicidad = await resFelicidad.json();
             await tick();
-            const item = data[0] ?? {};
-            chartInstance = new ApexCharts(document.getElementById('chartG16'), {
-                series: [parseFloat(item.sales_share ?? item.share ?? 50)],
-                chart: { height: 380, type: 'radialBar' },
-                labels: [item.country ?? item.region ?? 'EV Sales'],
-                plotOptions: { radialBar: { dataLabels: { value: { formatter: v => v + '%' } } } }
+            
+            const container = document.getElementById('chartG16');
+            if (!container) return;
+
+            const normalize = (str) => (str || "").toLowerCase().trim();
+            const targetCountries = ['Norway', 'China', 'Germany', 'USA', 'France'];
+            const labels = [];
+            const serieEV = [];
+            const serieFelicidad = [];
+
+            targetCountries.forEach(pais => {
+                const evPais = dataG16.find(d => normalize(d.country) === normalize(pais) || normalize(d.region) === normalize(pais));
+                const fPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
+
+                labels.push(pais);
+                // Multiplicamos el share o score para que se vean bien en el mismo radar
+                serieEV.push(evPais ? parseFloat(evPais.sales_share || evPais.share || 0) : 0);
+                serieFelicidad.push(fPais ? (fPais.score * 10 || 0) : 0); 
+            });
+
+            chartInstance = new ApexCharts(container, {
+                series: [{ name: 'Cuota Ventas EV (%)', data: serieEV }, { name: 'Felicidad (Score x10)', data: serieFelicidad }],
+                chart: { height: 400, type: 'radar' },
+                labels: labels,
+                stroke: { width: 2 },
+                fill: { opacity: 0.2 },
+                title: { text: 'Ventas EV vs Felicidad' }
             });
             chartInstance.render();
         } catch(e) { console.error('G16 error', e); }
     }
  
-    // 4. G18: Food Supply — Tabla HTML
+    
+ // 4. G18: MASHUP Food Supply vs Felicidad (Tabla HTML)
     async function loadG18() {
         clearContainers();
+        currentIntegration = 'G18';
         try {
-            const res = await fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts');
-            externalData = await res.json();
-            currentIntegration = 'G18';
+            const [resG18, resFelicidad] = await Promise.all([
+                fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts'),
+                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
+            ]);
+
+            const dataG18 = await resG18.json();
+            const dataFelicidad = await resFelicidad.json();
+            
+            const normalize = (str) => (str || "").toLowerCase().trim();
+            
+            // Cruzamos los datos directamente
+            externalData = dataG18.slice(0, 15).map(itemG18 => {
+                const nombrePais = itemG18.country || itemG18.entity || itemG18.location || "";
+                const felicidadMatch = dataFelicidad.find(f => normalize(f.country) === normalize(nombrePais));
+                
+                return {
+                    pais: nombrePais,
+                    ano: itemG18.year || '—',
+                    kcal: itemG18.food_supply_kcal || itemG18.kcal || itemG18.utilization_amount || '—',
+                    gdp: felicidadMatch ? felicidadMatch.gdp : 'No data',
+                    score: felicidadMatch ? felicidadMatch.score : 'No data'
+                };
+            });
+            
         } catch(e) { console.error('G18 error', e); }
     }
  
@@ -308,23 +375,37 @@
             <p class="small text-muted">Fuente: <b>sos2526-16.onrender.com</b> | Librería: <b>ApexCharts</b> | Tipo: <b>Radial Bar</b></p>
             <div id="chartG16"></div>
  
-        {:else if currentIntegration === 'G18'}
-            <h3>🍎 Food Supply — G18</h3>
-            <p class="small text-muted">Fuente: <b>sos2526-18.onrender.com</b> | Método: <b>Tabla HTML</b></p>
-            <table class="table table-hover table-bordered mt-3">
-                <thead class="table-dark">
-                    <tr><th>País</th><th>Año</th><th>Kcal/Persona/Día</th></tr>
+      {:else if currentIntegration === 'G18'}
+        <div class="integration-info">
+            <p><strong>🍎 MASHUP: Food Supply (G18) vs Felicidad (G15)</strong></p>
+            <p>Fuente: <strong>sos2526-18-mcs-stable.onrender.com</strong> + <strong>Mi API</strong> | Método: <strong>Tabla HTML</strong></p>
+        </div>
+        {#if externalData && externalData.length > 0}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>País</th>
+                        <th>Año (G18)</th>
+                        <th>Kcal/Persona (G18)</th>
+                        <th>PIB / GDP (Mi API)</th>
+                        <th>Puntuación Felicidad (Mi API)</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    {#each externalData.slice(0,12) as item}
+                    {#each externalData as row}
                         <tr>
-                            <td>{item.country ?? '—'}</td>
-                            <td>{item.year ?? '—'}</td>
-                            <td>{item.food_supply_kcal ?? '—'}</td>
+                            <td>{row.pais}</td>
+                            <td>{row.ano}</td>
+                            <td>{row.kcal}</td>
+                            <td>{row.gdp}</td>
+                            <td>{row.score}</td>
                         </tr>
                     {/each}
                 </tbody>
             </table>
+        {:else}
+            <p style="text-align: center; margin-top: 2rem;">No hay datos cruzados disponibles o la API G18 está vacía.</p>
+        {/if}
  
         {:else if currentIntegration === 'PROXY'}
             <h3>🌍 Rest Countries — Proxy propio</h3>
