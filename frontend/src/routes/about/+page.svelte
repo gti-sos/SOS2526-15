@@ -16,7 +16,7 @@
         {
             id: "JAM",
             name: "Javier Arroyo",
-            videoUrl: "https://www.youtube.com/watch?v=placeholder3",
+            videoUrl: "https://youtu.be/IGujni6Keb0",
             description: "Responsable de happiness-indices"
         }
     ];
