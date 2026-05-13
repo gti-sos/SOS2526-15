@@ -118,35 +118,101 @@
     }
     // --------------------------------------------------------
 
-    // 1. G14: Meteoritos — Chart.js Pie
+ // 1. G14: MASHUP Meteoritos vs Felicidad (Chart.js - Mixto Barras/Líneas)
     async function loadG14() {
         clearContainers();
         currentIntegration = 'G14';
         try {
-            const res = await fetch('https://meteorite-landings-tvcf.onrender.com/api/v2/meteorite-landings');
-            const data = await res.json();
-            await tick();
-            const fell  = data.filter(m => m.fall === 'Fell').length;
-            const found = data.filter(m => m.fall === 'Found').length;
-            chartInstance = new Chart(document.getElementById('chartG14'), {
-                type: 'pie',
+            const [resG14, resFelicidad] = await Promise.all([
+                fetch('https://meteorite-landings-tvcf.onrender.com/api/v2/meteorite-landings'),
+                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
+            ]);
+
+            const dataG14 = await resG14.json();
+            const dataFelicidad = await resFelicidad.json();
+            await tick(); 
+            
+            const el = document.getElementById('chartG14');
+            if (!el) return;
+
+            // Destructor de gráficas fantasmas (el antídoto)
+            let chartExistente = Chart.getChart('chartG14'); 
+            if (chartExistente != undefined) {
+                chartExistente.destroy();
+            }
+
+            // Normalizador inteligente que elimina los guiones bajos de tus datos
+            const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
+            
+            // Elegimos países que sabemos que están en tu DB y en la de ellos
+            const targetCountries = ['Spain', 'Germany', 'Japan', 'Brazil', 'United States'];
+            const datosCruzados = [];
+
+            targetCountries.forEach(pais => {
+                const meteoritosPais = dataG14.filter(m => normalize(m.country) === normalize(pais));
+                const felicidadPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
+                
+                datosCruzados.push({
+                    pais: pais,
+                    meteoritos: meteoritosPais.length, 
+                    // Usamos tu campo real de felicidad
+                    score: felicidadPais ? felicidadPais.happiness_score : 0
+                });
+            });
+
+            // Creamos una gráfica mixta con Doble Eje (Dual Axis)
+            chartInstance = new Chart(el, {
+                type: 'bar', // Tipo principal
                 data: {
-                    labels: ['Caídos (Fell)', 'Encontrados (Found)'],
-                    datasets: [{ data: [fell, found], backgroundColor: ['#FF6384','#36A2EB'] }]
+                    labels: datosCruzados.map(d => d.pais),
+                    datasets: [
+                        {
+                            type: 'bar', // Barras para los meteoritos
+                            label: 'Nº Meteoritos',
+                            data: datosCruzados.map(d => d.meteoritos),
+                            backgroundColor: '#FF99B4',
+                            yAxisID: 'y' // Eje izquierdo
+                        },
+                        {
+                            type: 'line', // Línea para la felicidad
+                            label: 'Felicidad (Score)',
+                            data: datosCruzados.map(d => d.score),
+                            borderColor: '#36A2EB',
+                            backgroundColor: '#36A2EB',
+                            borderWidth: 3,
+                            yAxisID: 'y1' // Eje derecho
+                        }
+                    ]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Cantidad de Meteoritos' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Nivel de Felicidad' },
+                            grid: { drawOnChartArea: false } // Para que las rayas de fondo no se crucen
+                        }
+                    }
+                }
             });
         } catch(e) { console.error('G14 error', e); }
     }
- 
     // 2. G10: MASHUP Pandemias vs Felicidad (ECharts)
-    async function loadG10() {
+async function loadG10() {
         clearContainers();
         currentIntegration = 'G10';
         try {
             const [resG10, resFelicidad] = await Promise.all([
                 fetch('https://sos2526-10.onrender.com/api/v2/pandemics'),
-                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices') // Tu API
+                fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices') 
             ]);
 
             const dataG10 = await resG10.json();
@@ -156,22 +222,24 @@
             const container = document.getElementById('chartG10');
             if (!container) return;
 
-            const normalize = (str) => (str || "").toLowerCase().trim();
+            // Mejoramos el normalize para que quite los guiones bajos de tus datos
+            const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
             const datosCruzados = [];
-            const targetCountries = ['Spain', 'France', 'Germany', 'Italy', 'Brazil'];
+            
+            // Elegimos 5 países que SABEMOS que están en tu base de datos
+            const targetCountries = ['Spain', 'Germany', 'Brazil', 'Japan', 'Mexico'];
 
             targetCountries.forEach(pais => {
-                // Buscamos datos en G10 (Sumamos los casos de polio de todos los años para ese país)
                 const pandemiasPais = dataG10.filter(d => normalize(d.entity) === normalize(pais) || normalize(d.country) === normalize(pais));
                 const totalPolio = pandemiasPais.reduce((sum, item) => sum + (item.polio || 0), 0);
 
-                // Buscamos datos en tu API
                 const felicidadPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
                 
                 datosCruzados.push({
                     pais: pais,
                     polio: totalPolio,
-                    gdp: felicidadPais ? felicidadPais.gdp : 0
+                    // Usamos tu campo real: gdp_per_capita
+                    gdp: felicidadPais ? felicidadPais.gdp_per_capita : 0
                 });
             });
 
@@ -195,7 +263,7 @@
         currentIntegration = 'G16';
         try {
             const [resG16, resFelicidad] = await Promise.all([
-                fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales'),
+                fetch('https://sos2526-16.onrender.com/api/v2/global-ev-sales'),
                 fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
             ]);
 
@@ -206,8 +274,9 @@
             const container = document.getElementById('chartG16');
             if (!container) return;
 
-            const normalize = (str) => (str || "").toLowerCase().trim();
-            const targetCountries = ['Norway', 'China', 'Germany', 'USA', 'France'];
+            const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
+            // Paises que están en tu DB y que suelen vender coches eléctricos
+            const targetCountries = ['Norway', 'Denmark', 'Germany', 'United States', 'Japan'];
             const labels = [];
             const serieEV = [];
             const serieFelicidad = [];
@@ -217,9 +286,9 @@
                 const fPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
 
                 labels.push(pais);
-                // Multiplicamos el share o score para que se vean bien en el mismo radar
                 serieEV.push(evPais ? parseFloat(evPais.sales_share || evPais.share || 0) : 0);
-                serieFelicidad.push(fPais ? (fPais.score * 10 || 0) : 0); 
+                // Usamos tu campo real: happiness_score
+                serieFelicidad.push(fPais ? (fPais.happiness_score * 10 || 0) : 0); 
             });
 
             chartInstance = new ApexCharts(container, {
@@ -248,9 +317,8 @@
             const dataG18 = await resG18.json();
             const dataFelicidad = await resFelicidad.json();
             
-            const normalize = (str) => (str || "").toLowerCase().trim();
+            const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
             
-            // Cruzamos los datos directamente
             externalData = dataG18.slice(0, 15).map(itemG18 => {
                 const nombrePais = itemG18.country || itemG18.entity || itemG18.location || "";
                 const felicidadMatch = dataFelicidad.find(f => normalize(f.country) === normalize(nombrePais));
@@ -259,8 +327,9 @@
                     pais: nombrePais,
                     ano: itemG18.year || '—',
                     kcal: itemG18.food_supply_kcal || itemG18.kcal || itemG18.utilization_amount || '—',
-                    gdp: felicidadMatch ? felicidadMatch.gdp : 'No data',
-                    score: felicidadMatch ? felicidadMatch.score : 'No data'
+                    // Vinculamos tus campos reales
+                    gdp: felicidadMatch ? felicidadMatch.gdp_per_capita : 'No data',
+                    score: felicidadMatch ? felicidadMatch.happiness_score : 'No data'
                 };
             });
             
