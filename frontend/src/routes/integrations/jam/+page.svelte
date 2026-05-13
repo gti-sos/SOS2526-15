@@ -43,7 +43,7 @@
             // 1. Cargamos ambas APIs a la vez de forma segura
             // IMPORTANTE: Cambia la ruta local de felicidad si tu API se llama distinto
             const [resMeteoritos, resFelicidad] = await Promise.all([
-                fetch('https://sos2526-14.onrender.com/api/v2/meteorite-landings'),
+                fetch('https://meteorite-landings-tvcf.onrender.com/api/v2/meteorite-landings'),
                 fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices')
             ]);
 
@@ -123,7 +123,7 @@
         clearContainers();
         currentIntegration = 'G14';
         try {
-            const res = await fetch('https://sos2526-14.onrender.com/api/v2/meteorite-landings');
+            const res = await fetch('https://meteorite-landings-tvcf.onrender.com/api/v2/meteorite-landings');
             const data = await res.json();
             await tick();
             const fell  = data.filter(m => m.fall === 'Fell').length;
@@ -139,7 +139,7 @@
         } catch(e) { console.error('G14 error', e); }
     }
  
-    // 2. G10: Pandemias — ECharts Funnel
+    // 2. G10: Pandemias — ECharts Funnel (CORREGIDO)
     async function loadG10() {
         clearContainers();
         currentIntegration = 'G10';
@@ -147,14 +147,24 @@
             const res = await fetch('https://sos2526-10.onrender.com/api/v2/pandemics');
             const data = await res.json();
             await tick();
-            echarts.init(document.getElementById('chartG10')).setOption({
-                title: { text: 'Afectados por Pandemia (Top 6)', left: 'center' },
+            
+            const container = document.getElementById('chartG10');
+            if (!container) return;
+
+            // Filtramos para que no salgan solo ceros. 
+            // Cogemos los 6 primeros que tengan algo de Polio, por ejemplo.
+            const dataConDatos = data.filter(d => d.polio > 0).slice(0, 6);
+
+            echarts.init(container).setOption({
+                title: { text: 'Casos de Polio (Top 6 con registros)', left: 'center' },
                 tooltip: { trigger: 'item' },
                 series: [{
-                    type: 'funnel', left: '10%', width: '80%',
-                    data: data.slice(0,6).map(d => ({
-                        value: d.affected ?? d.cases ?? d.deaths ?? 0,
-                        name: d.country ?? d.name ?? 'N/A'
+                    type: 'funnel', 
+                    left: '10%', 
+                    width: '80%',
+                    data: dataConDatos.map(d => ({
+                        value: d.polio,        // <--- Usamos el campo real
+                        name: `${d.entity} (${d.year})` // <--- 'entity' en vez de 'country'
                     }))
                 }]
             });
@@ -166,7 +176,7 @@
         clearContainers();
         currentIntegration = 'G16';
         try {
-            const res = await fetch('https://sos2526-16.onrender.com/api/v2/global-ev-sales');
+            const res = await fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales');
             const data = await res.json();
             await tick();
             const item = data[0] ?? {};
@@ -184,7 +194,7 @@
     async function loadG18() {
         clearContainers();
         try {
-            const res = await fetch('https://sos2526-18.onrender.com/api/v2/food-supply-utilization-accounts');
+            const res = await fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts');
             externalData = await res.json();
             currentIntegration = 'G18';
         } catch(e) { console.error('G18 error', e); }
