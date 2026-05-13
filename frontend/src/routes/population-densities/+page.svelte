@@ -36,12 +36,6 @@
   let searchFrom = $state("");
   // @ts-ignore
   let searchTo = $state("");
-  // @ts-ignore
-  let searchDensity = $state("");
-  // @ts-ignore
-  let searchPopulation = $state("");
-  // @ts-ignore
-  let searchPercentageChange = $state("");
   
   // Nuevas variables para PAGINACIÓN
   // @ts-ignore
@@ -52,7 +46,7 @@
   // ---------------- FUNCIONES ----------------
 
   // Búsqueda y Listado
-  async function getDensities() {
+  async function getDensities(keepMessage = false) {
     let query = new URLSearchParams();
     
     if (searchCountry) query.append("country", searchCountry);
@@ -66,7 +60,6 @@
     if (searchLimit) query.append("limit", searchLimit);
     if (searchOffset) query.append("offset", searchOffset);
 
-    // Actualizamos la URL visible del navegador sin recargar la página
     goto(`?${query.toString()}`, { replaceState: true, keepFocus: true });
 
     let fetchUrl = API;
@@ -78,7 +71,6 @@
       const res = await fetch(fetchUrl, { method: "GET" });
       if (res.ok) {
         let data = await res.json();
-        // Si no es un array (por ejemplo, al buscar un recurso único que devuelve un objeto), lo metemos en un array
         if (!Array.isArray(data)) {
             data = [data];
         }
@@ -89,20 +81,28 @@
             resultMensaje = "No se encontraron resultados para esta búsqueda.";
             mensajeColor = "orange";
         } else {
-            resultMensaje = ""; // Si encuentra datos, quitamos el mensaje para que quede limpio
+            // Solo limpiamos el mensaje si no se nos pide conservarlo
+            if (!keepMessage) {
+                resultMensaje = "";
+            }
         }
-
       } else if (res.status === 404) {
         densities = [];
-        resultMensaje = "No se encontraron resultados para esta búsqueda.";
-        mensajeColor = "orange";
+        if (!keepMessage) {
+            resultMensaje = "No se encontraron resultados para esta búsqueda.";
+            mensajeColor = "orange";
+        }
       } else {
-        resultMensaje = "Error al obtener los datos. Código: " + res.status;
-        mensajeColor = "red";
+        if (!keepMessage) {
+            resultMensaje = "Error al obtener los datos. Código: " + res.status;
+            mensajeColor = "red";
+        }
       }
     } catch (err) {
-      resultMensaje = "Error de conexión con la API.";
-      mensajeColor = "red";
+      if (!keepMessage) {
+          resultMensaje = "Error de conexión con la API.";
+          mensajeColor = "red";
+      }
     }
   }
 
@@ -122,7 +122,13 @@
       if (res.status === 201 || res.ok) {
         resultMensaje = "Datos iniciales cargados con éxito.";
         mensajeColor = "green";
-        limpiarBusqueda(); // Limpiamos los filtros para que se vean todos los datos recién cargados
+        // Limpiamos los campos de búsqueda manualmente sin llamar a limpiarBusqueda
+        searchCountry = ""; searchFrom = "";
+        searchTo = "";
+        searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
+        searchLimit = ""; searchOffset = "";
+        // Actualizamos la tabla conservando el mensaje de éxito
+        await getDensities(true);
       } else {
         resultMensaje = "Error al cargar los datos iniciales.";
         mensajeColor = "red";
@@ -186,6 +192,13 @@
 
   // Borrar todos
   async function deleteAll() {
+    // Si no hay datos, avisamos y no hacemos nada
+    if (densities.length === 0) {
+      resultMensaje = "No se puede borrar porque no hay datos.";
+      mensajeColor = "red";
+      return;
+    }
+
     if (confirm("¿Seguro que quieres borrar TODOS los datos?")) {
       try {
         const res = await fetch(API, { method: "DELETE" });
