@@ -150,7 +150,18 @@
         } catch(e) { console.error('G10 error', e); }
     }
 
-// --- 3. G16: EV Sales vs Felicidad ---
+// ==========================================
+    // 3. G16: EV SALES VS FELICIDAD
+    // ==========================================
+    async function cargarDatosEnergia() {
+        try {
+            await fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales/loadInitialData');
+            await fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices/loadInitialData');
+            alert("✅ Datos de Energía y Felicidad despertados.");
+            loadG16(); 
+        } catch(e) { alert("❌ Hubo un error al cargar datos iniciales."); }
+    }
+
     async function loadG16() {
         clearContainers();
         currentIntegration = 'G16';
@@ -168,23 +179,17 @@
             if (!container) return;
 
             const normalize = (str) => (str || "").toLowerCase().replace(/_/g, ' ').trim();
-            
-            // Elegimos países que sabemos que están en AMBAS bases de datos
-            const targetCountries = ['Germany', 'United States', 'Finland', 'Netherlands', 'Australia'];
+            const targetCountries = ['Norway', 'Denmark', 'Germany', 'United States', 'Japan'];
             const labels = [];
             const serieEV = [];
             const serieFelicidad = [];
 
             targetCountries.forEach(pais => {
-                // Adaptamos la búsqueda: su API usa "USA" en vez de "United States"
                 const searchRegion = pais === 'United States' ? 'USA' : pais;
-                
-                // Buscamos usando .region en vez de .country
                 const evPais = dataG16.find(d => normalize(d.region) === normalize(searchRegion));
                 const fPais = dataFelicidad.find(f => normalize(f.country) === normalize(pais));
 
                 labels.push(pais);
-                // Leemos .value en lugar de .sales_share
                 serieEV.push(evPais ? parseFloat(evPais.value || 0) : 0);
                 serieFelicidad.push(fPais ? (fPais.happiness_score * 10 || 0) : 0); 
             });
@@ -201,7 +206,18 @@
         } catch(e) { console.error('G16 error', e); }
     }
 
-    // --- 4. G18: Food Supply vs Felicidad ---
+    // ==========================================
+    // 4. G18: ALIMENTACIÓN VS FELICIDAD
+    // ==========================================
+    async function cargarDatosFood() {
+        try {
+            await fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts/loadInitialData');
+            await fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices/loadInitialData');
+            alert("✅ Datos de Alimentación y Felicidad despertados.");
+            loadG18();
+        } catch(e) { alert("❌ Hubo un error al cargar datos iniciales."); }
+    }
+
     async function loadG18() {
         clearContainers();
         currentIntegration = 'G18';
@@ -216,15 +232,12 @@
             
             const normalize = (str) => (str || "").toString().toLowerCase().replace(/_/g, ' ').trim();
             
-            // TRUCO PRO: Filtramos G18 para quedarnos SOLO con los países que tienes en tu base de datos
             const datosConCruce = dataG18.filter(itemG18 => {
                 let nombre = itemG18.country_name_en || itemG18.country || "";
-                if(nombre.includes("China")) nombre = "China"; // Arreglamos "China, mainland"
-                
+                if(nombre.includes("China")) nombre = "China"; 
                 return dataFelicidad.some(f => normalize(f.country) === normalize(nombre));
             });
 
-            // Ahora mapeamos solo los 15 primeros que SÍ tienen cruce
             externalData = datosConCruce.slice(0, 15).map(itemG18 => {
                 let nombrePais = itemG18.country_name_en || itemG18.country || "Desconocido";
                 if(nombrePais.includes("China")) nombrePais = "China";
@@ -244,7 +257,6 @@
                     score: felicidadMatch ? felicidadMatch.happiness_score : 'No data'
                 };
             });
-            
         } catch(e) { console.error('G18 error', e); }
     }
  
@@ -323,20 +335,31 @@
                 <p>Selecciona una fuente de datos del menú superior.</p>
             </div>
             
-        {:else if currentIntegration === 'G14'}
-            <h3>🔥 Cruce: Meteoritos vs Índice de Riqueza (G14)</h3>
-            <p class="small text-muted">Integración combinada | Librería: <b>Chart.js</b></p>
+ {:else if currentIntegration === 'G14'}
+            <div class="integration-info mb-3">
+                <h3>🔥 Cruce: Meteoritos vs Índice de Riqueza (G14)</h3>
+                <p class="small text-muted">Integración combinada | Librería: <b>Chart.js</b></p>
+                <button class="btn btn-outline-secondary shadow-sm" onclick={() => {
+                    fetch('https://sos2526-14.onrender.com/api/v2/meteorite-landings/loadInitialData');
+                    fetch('https://sos2526-15.onrender.com/api/v2/happiness-indices/loadInitialData');
+                    alert("✅ Petición para despertar APIs enviada. Haz clic de nuevo en el botón de Meteoritos.");
+                }}>
+                    Cargar Datos API Meteoritos
+                </button>
+            </div>
             
-            {#if loadingMerge}
-                <div class="text-center mt-5">
-                    <p>Cruzando datos de ambas APIs...</p>
-                </div>
-            {:else if errorMerge}
-                <div class="alert alert-danger mt-3">{errorMerge}</div>
-            {:else}
-                <div style="max-width:700px;margin:0 auto;">
-                    <canvas id="chartG14"></canvas>
-                </div>
+            {#if errorMerge}
+                <div class="alert alert-danger mt-3 shadow-sm">{errorMerge}</div>
+            {/if}
+
+            <div style="position: relative; max-width:700px; margin:0 auto;">
+                {#if loadingMerge}
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 10;">
+                        <span class="spinner-border text-warning me-2"></span> Cruzando datos...
+                    </div>
+                {/if}
+                <canvas id="chartG14"></canvas>
+            </div>
             {/if}
  
         {:else if currentIntegration === 'G10'}
@@ -353,12 +376,11 @@
                 </button>
             </div>
             <div id="chartG16"></div>
- 
+
         {:else if currentIntegration === 'G18'}
             <div class="integration-info mb-3">
                 <h3>🍎 MASHUP: Producción Agrícola (G18) vs Felicidad (G15)</h3>
                 <p class="text-muted">Fuente: <strong>sos2526-18-mcs-stable.onrender.com</strong> + <strong>Mi API</strong> | Método: <strong>Tabla HTML</strong></p>
-                
                 <button class="btn btn-outline-secondary shadow-sm" onclick={cargarDatosFood}>
                     Cargar Datos API Alimentación
                 </button>
