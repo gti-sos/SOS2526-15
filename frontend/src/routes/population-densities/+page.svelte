@@ -52,9 +52,7 @@
     if (searchCountry) query.append("country", searchCountry);
     if (searchFrom) query.append("from", searchFrom);
     if (searchTo) query.append("to", searchTo);
-    if (searchDensity) query.append("density", searchDensity);
-    if (searchPopulation) query.append("population", searchPopulation);
-    if (searchPercentageChange) query.append("percentage_change", searchPercentageChange);
+
     
     // Añadimos limit y offset a la query
     if (searchLimit) query.append("limit", searchLimit);
@@ -109,7 +107,6 @@
   function limpiarBusqueda() {
     searchCountry = ""; searchFrom = "";
     searchTo = "";
-    searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
     searchLimit = ""; searchOffset = ""; // Limpiamos también la paginación
     getDensities();
     // Al llamar a getDensities con todo vacío, la URL también se limpiará
@@ -125,7 +122,6 @@
         // Limpiamos los campos de búsqueda manualmente sin llamar a limpiarBusqueda
         searchCountry = ""; searchFrom = "";
         searchTo = "";
-        searchDensity = ""; searchPopulation = ""; searchPercentageChange = "";
         searchLimit = ""; searchOffset = "";
         // Actualizamos la tabla conservando el mensaje de éxito
         await getDensities(true);
@@ -220,9 +216,7 @@
     searchCountry = params.get("country") || "";
     searchFrom = params.get("from") || "";
     searchTo = params.get("to") || "";
-    searchDensity = params.get("density") || "";
-    searchPopulation = params.get("population") || "";
-    searchPercentageChange = params.get("percentage_change") || "";
+
     searchLimit = params.get("limit") || "";
     searchOffset = params.get("offset") || "";
 
@@ -255,19 +249,6 @@
       </div>
       <div class="col-md-4">
         <input type="number" bind:value={searchTo} placeholder="Hasta año..." class="form-control form-control-sm" />
-      </div>
-    </div>
-    
-    <div class="row g-2 mb-2">
-      <div class="col-md-4">
-        <input type="number" step="0.1" bind:value={searchDensity} placeholder="Filtrar densidad..." class="form-control form-control-sm" />
-      </div>
-   
-      <div class="col-md-4">
-        <input type="number" bind:value={searchPopulation} placeholder="Filtrar población..." class="form-control form-control-sm" />
-      </div>
-      <div class="col-md-4">
-        <input type="number" step="0.01" bind:value={searchPercentageChange} placeholder="Filtrar % cambio..." class="form-control form-control-sm" />
       </div>
     </div>
 
