@@ -175,7 +175,7 @@
       if (res.status === 200 || res.status === 204) {
         resultMensaje = `Registro de ${country} (${year}) borrado.`;
         mensajeColor = "green";
-        getDensities();
+        getDensities(true);
       } else {
         resultMensaje = "Error al borrar el recurso.";
         mensajeColor = "red";
