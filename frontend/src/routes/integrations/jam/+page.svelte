@@ -360,7 +360,7 @@
                 {/if}
                 <canvas id="chartG14"></canvas>
             </div>
-            {/if}
+           
  
         {:else if currentIntegration === 'G10'}
             <h3>🦠 MASHUP: Pandemias vs Felicidad (G10)</h3>
