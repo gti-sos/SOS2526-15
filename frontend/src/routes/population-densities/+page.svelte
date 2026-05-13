@@ -108,7 +108,7 @@
     searchCountry = ""; searchFrom = "";
     searchTo = "";
     searchLimit = ""; searchOffset = ""; // Limpiamos también la paginación
-    getDensities();
+    getDensities(true);
     // Al llamar a getDensities con todo vacío, la URL también se limpiará
   }
 
@@ -154,7 +154,7 @@
         resultMensaje = `Registro de ${newCountry} creado.`;
         mensajeColor = "green";
         newCountry = ""; newYear = ""; newDensity = ""; newPopulation = ""; newPercentageChange = "";
-        getDensities();
+        getDensities(true);
       } else if (res.status === 409) {
         resultMensaje = "Conflicto: Ya existe un registro para ese país y año.";
         mensajeColor = "orange";
@@ -220,7 +220,7 @@
     searchLimit = params.get("limit") || "";
     searchOffset = params.get("offset") || "";
 
-    getDensities();
+    getDensities(true);
   });
 </script>
 
