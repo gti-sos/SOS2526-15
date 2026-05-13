@@ -10,7 +10,7 @@
         {
             id: "YHX",
             name: "Adrián López",
-            videoUrl: "https://www.youtube.com/watch?v=placeholder2",
+            videoUrl: "https://youtu.be/i9TiTTiP4bY",
             description: "Responsable de population-densities"
         },
         {
