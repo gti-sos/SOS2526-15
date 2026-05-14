@@ -150,9 +150,7 @@
         } catch(e) { console.error('G10 error', e); }
     }
 
-// ==========================================
     // 3. G16: EV SALES VS FELICIDAD
-    // ==========================================
     async function cargarDatosEnergia() {
         try {
             await fetch('https://sos2526-16.onrender.com/api/v1/global-ev-sales/loadInitialData');
@@ -206,9 +204,7 @@
         } catch(e) { console.error('G16 error', e); }
     }
 
-    // ==========================================
     // 4. G18: ALIMENTACIÓN VS FELICIDAD
-    // ==========================================
     async function cargarDatosFood() {
         try {
             await fetch('https://sos2526-18-mcs-stable.onrender.com/api/v2/food-supply-utilization-accounts/loadInitialData');
