@@ -44,6 +44,7 @@
                 <li>⚙️ <a href="/api/v2/happiness-indices">URL Base API (v2)</a></li>
                 <li>📚 <a href="https://documenter.getpostman.com/view/52395798/2sBXigMtLE" target="_blank">Documentación Postman</a></li>
                 <li>📈 <a href="/analytics/happiness-indices" target="_blank">Analítica</a></li>
+                <li>▶️ <a href="https://youtu.be/rOSJTrKOQHU" target="_blank">Video Explicatorio</a></li>
             </ul>
         </section>
 
@@ -55,6 +56,7 @@
                 <li>⚙️ <a href="/api/v1/population-densities">URL Base API (v1)</a></li>
                 <li>📚 <a href="/api/v1/population-densities/docs" target="_blank">Documentación Postman</a></li>
                 <li>📈 <a href="/analytics/population-densities" target="_blank">Analítica</a></li>
+                <li>▶️ <a href="https://youtu.be/i9TiTTiP4bY" target="_blank">Video Explicatorio</a></li>
             </ul>
         </section>
 
@@ -67,6 +69,7 @@
                 <li>⚙️ <a href="/api/v2/minimum-interprofessional-wages">URL Base API (v2)</a></li>
                 <li>📚 <a href="/api/v2/minimum-interprofessional-wages/docs" target="_blank">Documentación Postman</a></li>
                 <li>📈 <a href="/analytics/minimum-interprofessional-wages" target="_blank">Analítica</a></li>
+                <li>▶️ <a href="https://youtu.be/rOSJTrKOQHU" target="_blank">Video Explicatorio</a></li>
             </ul>
         </section>
     </div>
